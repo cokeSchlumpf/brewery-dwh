@@ -5,7 +5,7 @@ import lombok.Value;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class MashingRest implements Instruction {
+public class Rest implements Instruction {
 
     /**
      * Duration in minutes.

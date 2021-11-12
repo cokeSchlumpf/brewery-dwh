@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS (
 CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_INGREDIENT_ADDS (
     id              INTEGER,
     ingredient      INTEGER,
-    amount          INTEGER,
+    amount          DOUBLE,
 
     FOREIGN KEY (id) REFERENCES sppl.PROD_RECIPES_INSTRUCTIONS (id),
     FOREIGN KEY (ingredient) REFERENCES sppl.PROD_INGREDIENTS (id)
@@ -55,14 +55,14 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_INGREDIENT_ADDS (
 
 CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_MASHINGS (
     id                  INTEGER,
-    start_temperature   INTEGER,
-    end_temperature     INTEGER,
+    start_temperature   DOUBLE,
+    end_temperature     DOUBLE,
     duration            INTEGER,
 
     FOREIGN KEY (id) REFERENCES sppl.PROD_RECIPES_INSTRUCTIONS (id)
 );
 
-CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_MASGING_RESTS (
+CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_MASHING_RESTS (
     id                  INTEGER,
     duration            INTEGER,
 
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_INGREDIENT_ADDS (
     brew_id             INTEGER,
     moment              TIMESTAMP,
     ingredient_product  INTEGER,
-    amount              INTEGER,
+    amount              DOUBLE,
 
     FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
     FOREIGN KEY (ingredient_product) REFERENCES sppl.PROD_INGREDIENT_PRODUCTS(id)
@@ -135,8 +135,8 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_INGREDIENT_ADDS (
 
 CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_MASHINGS (
     brew_id              INTEGER,
-    start                TIMESTAMP,
-    duration             INTEGER,
+    start_time           TIMESTAMP,
+    end_time             TIMESTAMP,
     start_temperature    INTEGER,
     end_temperature      INTEGER,
 
@@ -146,8 +146,8 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_MASHINGS (
 
 CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_MASHING_RESTS (
     brew_id             INTEGER,
-    start               TIMESTAMP,
-    duration            INTEGER,
+    start_time          TIMESTAMP,
+    end_time            TIMESTAMP,
     FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
     PRIMARY KEY (brew_id, start)
 );
@@ -166,22 +166,6 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_BOILINGS (
     end_time            TIMESTAMP,
     FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
     PRIMARY KEY (brew_id, start_time)
-);
-
-CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_HOP_ADDINGS (
-    brew_id             INTEGER,
-    moment              TIMESTAMP,
-    amount              INTEGER,
-    FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
-    PRIMARY KEY (brew_id, moment)
-);
-
-CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_YEAST_ADDINGS (
-    brew_id             INTEGER,
-    moment              TIMESTAMP,
-    amount              INTEGER,
-    FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
-    PRIMARY KEY (brew_id, moment)
 );
 
 --
