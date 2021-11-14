@@ -1,6 +1,6 @@
 # Sepplpeter's MicroBrewery Processes
 
-This document describes the processes of the MicroBrewery Sepplpeter's. The brewery is owned and run by three friends who manage the whole small company. The friends are Bert, Eddi and Johnny.
+This document describes the processes of the MicroBrewery Sepplpeter's. The brewery is owned and run by three friends who manage the whole small company. The friends are Mike, Eleanor and Johnny.
 
 ## Assumptions
 
@@ -19,7 +19,7 @@ At the end of each experiment, each one rates his own beers with a simple rating
 
 **External Beer Tasting**. Every half year an external tasting session should be conducted. The goal of the tasing session is to select the next seasonal beer. In advance of the session, they select the top 5 beers based on their own ratings. If more beers can be selected, becuase they are equally rated, the candidates are selected randomly.
 
-The beer tasting is done by organizing a party in Johnny's Haevy Metal Festival garden. A band is invited, a quite well tasting barbecue is arranged and a bar is offering the selected 5 beers for free. For each beer type 200 litres are available.
+The beer tasting is done by organizing a party in Johnny's Heavy Metal Festival garden. A band is invited, a quite well tasting barbecue is arranged and a bar is offering the selected 5 beers for free. For each beer type 200 litres are available.
 
 **Product Selection**. The best beer will be selected based on the highest consumption during the party. If more than one beer is completely drunk, the beer which was drunk earlier will be selected.
 
