@@ -1,8 +1,8 @@
-package systems.brewery.model.instructions;
+package systems.brewery.values.instructions;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import systems.brewery.model.Ingredient;
+import systems.brewery.values.Ingredient;
 
 @Value
 @AllArgsConstructor(staticName = "apply")

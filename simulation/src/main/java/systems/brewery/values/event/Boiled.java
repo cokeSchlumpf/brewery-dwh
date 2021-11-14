@@ -1,14 +1,13 @@
-package systems.brewery.model.event;
+package systems.brewery.values.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-import java.time.Duration;
 import java.time.Instant;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class Rested {
+public class Boiled {
 
     Instant start;
 

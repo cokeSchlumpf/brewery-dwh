@@ -1,8 +1,8 @@
-package systems.brewery.model.event;
+package systems.brewery.values.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import systems.brewery.model.IngredientProduct;
+import systems.brewery.values.IngredientProduct;
 
 import java.time.Instant;
 

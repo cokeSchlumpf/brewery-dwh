@@ -1,4 +1,4 @@
-package systems.brewery.model.event;
+package systems.brewery.values.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

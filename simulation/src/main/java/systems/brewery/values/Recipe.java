@@ -1,8 +1,8 @@
-package systems.brewery.model;
+package systems.brewery.values;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import systems.brewery.model.instructions.Instruction;
+import systems.brewery.values.instructions.Instruction;
 import systems.reference.model.Employee;
 
 import java.time.Instant;

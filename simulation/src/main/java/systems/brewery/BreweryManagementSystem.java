@@ -1,12 +1,13 @@
 package systems.brewery;
 
-import systems.brewery.model.Ingredient;
-import systems.brewery.model.Recipe;
+public final class BreweryManagementSystem {
 
-public class BreweryManagementSystem {
+    public Recipes getRecipes() {
+        throw new RuntimeException("foo");
+    }
 
-    public void registerRecipe(Recipe recipe) {
-
+    public IngredientProducts getIngredientProducts() {
+        throw new RuntimeException("foo");
     }
 
 }

@@ -1,4 +1,4 @@
-package systems.brewery.model.instructions;
+package systems.brewery.values.instructions;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

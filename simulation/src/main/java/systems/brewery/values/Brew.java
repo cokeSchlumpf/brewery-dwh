@@ -1,9 +1,9 @@
-package systems.brewery.model;
+package systems.brewery.values;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.With;
-import systems.brewery.model.event.BrewEvent;
+import systems.brewery.values.event.BrewEvent;
 import systems.reference.model.Employee;
 
 import java.time.Instant;
