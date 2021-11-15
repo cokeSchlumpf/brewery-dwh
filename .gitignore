@@ -47,4 +47,10 @@ Temporary Items
 .history
 .ionide
 
+# Postgres credentials
+database.ini
+
+# Ignore jupyter-notebook checkpoints and idea
+.idea
+.ipynb_checkpoints
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode
