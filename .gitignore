@@ -54,3 +54,6 @@ database.ini
 .idea
 .ipynb_checkpoints
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode
+
+#ignore python environment
+/random-generation/env/
