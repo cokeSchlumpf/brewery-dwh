@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS sppl.PD_INTERNAL_RATINGS (
     rating          INTEGER,
 
     FOREIGN KEY (experiment_id) REFERENCES sppl.PD_EXPERIMENTS (id),
-    PRIMARY KEY (experiment_id, rated_by))
+    PRIMARY KEY (experiment_id, rated_by));
 
 --
 -- External Rating Events
