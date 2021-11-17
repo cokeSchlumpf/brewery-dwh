@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  postgres:
+    build: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - "pgdata:/var/lib/postgresql/data/pgdata"
+
+  pgadmin:
+    image: dpage/pgadmin4:4.10
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: fsdi@kpmg.ch
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - 8080:80
+    volumes:
+      - "pgadmin:/var/lib/pgadmin"
+
+volumes:
+  pgdata:
+  pgadmin:

@@ -41,10 +41,10 @@ public final class BreweryRepositoryJdbcImpl implements BreweryRepositoryPort {
         var query = "INSERT INTO sppl.PROD_INGREDIENTS (name, unit) VALUES (:name, :unit)";
 
         jdbi.withHandle(handle -> handle
-            .createUpdate(query))
+            .createUpdate(query)
             .bind("name", ingredient.getName())
             .bind("unit", ingredient.getUnit())
-            .execute();
+            .execute());
     }
 
     @Override
@@ -53,8 +53,8 @@ public final class BreweryRepositoryJdbcImpl implements BreweryRepositoryPort {
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
-            .bind("name", name))
-            .execute();
+            .bind("name", name)
+            .execute());
     }
 
     @Override
@@ -64,9 +64,9 @@ public final class BreweryRepositoryJdbcImpl implements BreweryRepositoryPort {
         return jdbi.withHandle(handle -> handle
             .createQuery(query)
             .bind("name", name)
-            .map(new IngredientMapper()))
+            .map(new IngredientMapper())
             .stream()
-            .findFirst();
+            .findFirst());
     }
 
     private static class IngredientMapper implements RowMapper<Ingredient> {

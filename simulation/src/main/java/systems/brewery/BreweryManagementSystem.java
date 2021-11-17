@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 public final class BreweryManagementSystem {
 
     public Brewery getBrewery() {
-        return Brewery.apply();
+        return Brewery.apply(null);
     }
 
     public Recipes getRecipes() {
