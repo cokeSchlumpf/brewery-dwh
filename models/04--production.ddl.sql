@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_MASHINGS (
     end_temperature      INTEGER,
 
     FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
-    PRIMARY KEY (brew_id, start)
+    PRIMARY KEY (brew_id, start_time)
 );
 
 CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_MASHING_RESTS (
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_MASHING_RESTS (
     start_time          TIMESTAMP,
     end_time            TIMESTAMP,
     FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
-    PRIMARY KEY (brew_id, start)
+    PRIMARY KEY (brew_id, start_time)
 );
 
 CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_SPARGINGS (

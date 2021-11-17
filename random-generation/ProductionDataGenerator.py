@@ -142,10 +142,12 @@ def generate_PROD_BREWS_MASHINGS(count, start_id, prod_brew):
         id = random.randint(1, prod_brew.shape[0])
         start = time_stamp_generator(datetime.datetime(2015, 1, 1, 0, 0, 0, 0),
                                      datetime.datetime(2021, 6, 30, 0, 0, 0, 0), "days")
+
+        end = time_stamp_generator(start, start + datetime.timedelta(hours=5), 'hours')
         start_temperature = random.randint(30, 50)
         end_temperature = random.randint(60, 100)
-        duration = random.randint(5, 30)
-        bm.append((id, start, duration, start_temperature, end_temperature))
+
+        bm.append((id, start, end, start_temperature, end_temperature))
     return bm
 
 def generate_PROD_BREWS_MASHINGS_RESTS(count, start_id, prod_brew):
@@ -154,8 +156,8 @@ def generate_PROD_BREWS_MASHINGS_RESTS(count, start_id, prod_brew):
         id = random.randint(1, prod_brew.shape[0])
         start = time_stamp_generator(datetime.datetime(2015, 1, 1, 0, 0, 0, 0),
                                      datetime.datetime(2021, 6, 30, 0, 0, 0, 0), "days")
-        duration = random.randint(5, 60)
-        bmr.append((id, start, duration))
+        end = time_stamp_generator(start, start + datetime.timedelta(hours=30), "hours")
+        bmr.append((id, start, end))
     return bmr
 
 def generate_PROD_BREWS_SPARGINGS(count, start_id, prod_brew):
