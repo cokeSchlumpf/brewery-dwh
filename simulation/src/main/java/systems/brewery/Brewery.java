@@ -2,9 +2,12 @@ package systems.brewery;
 
 import lombok.AllArgsConstructor;
 import simulation.clock.Clock;
+import systems.brewery.ports.BreweryRepositoryPort;
 
 @AllArgsConstructor(staticName = "apply")
 public class Brewery {
+
+    private BreweryRepositoryPort repository;
 
     public void startBrewing(String beerKey, String employeeId, int originalGravity) {
         System.out.println("Start brewing ..." + Clock.getInstance().getNow());

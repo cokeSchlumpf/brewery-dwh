@@ -1,4 +1,4 @@
-package simulation;
+package common;
 
 import java.time.Duration;
 import java.util.List;

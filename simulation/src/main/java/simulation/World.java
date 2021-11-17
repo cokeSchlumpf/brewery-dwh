@@ -45,7 +45,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
 
             Clock.getInstance().run();
 
-            var johnny = ctx.spawn(Employee.create(), "johnny");
+            var johnny = ctx.spawn(Employee.create("johnny"), "johnny");
 
             return new World(ctx, johnny);
         });
@@ -65,7 +65,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
                         ctx.getSystem().scheduler())
                     .thenAccept(done -> msg.done.tell(StatusReply.success(done)));
 
-                return this;
+                return Behaviors.same();
             })
             .build();
     }

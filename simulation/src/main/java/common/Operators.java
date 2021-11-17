@@ -1,4 +1,4 @@
-package simulation;
+package common;
 
 import akka.japi.function.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;

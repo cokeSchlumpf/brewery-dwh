@@ -2,7 +2,6 @@ package simulation.entities.employee;
 
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
-import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import simulation.entities.employee.messages.BrewABeerCommand;
@@ -16,13 +15,16 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
 
     private State state;
 
-    public Employee(ActorContext<EmployeeMessage> context) {
-        super(context);
-        this.state = IdleState.apply(context, BreweryManagementSystem.apply());
+    public Employee(EmployeeContext ctx) {
+        super(ctx.getActor());
+        this.state = IdleState.apply(ctx);
     }
 
-    public static Behavior<EmployeeMessage> create() {
-        return Behaviors.setup(Employee::new);
+    public static Behavior<EmployeeMessage> create(String employeeName) {
+        return Behaviors.setup(actor -> {
+            var ctx = EmployeeContext.apply(actor, BreweryManagementSystem.apply(), employeeName);
+            return new Employee(ctx);
+        });
     }
 
     @Override
@@ -30,11 +32,11 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
         return newReceiveBuilder()
             .onMessage(BrewABeerCommand.class, cmd -> {
                 this.state = state.onBrewABeerCommand(cmd);
-                return this;
+                return Behaviors.same();
             })
             .onMessage(ExecuteNextBrewingInstructionCommand.class, cmd -> {
                 this.state = state.onExecuteNextBrewingInstructionCommand(cmd);
-                return this;
+                return Behaviors.same();
             })
             .build();
     }

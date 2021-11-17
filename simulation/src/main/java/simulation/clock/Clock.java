@@ -6,9 +6,10 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.AskPattern;
 import akka.japi.Creator;
 import lombok.AllArgsConstructor;
+import lombok.Synchronized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import simulation.Operators;
+import common.Operators;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

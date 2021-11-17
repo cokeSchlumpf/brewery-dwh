@@ -24,4 +24,18 @@ public class Recipe {
 
     List<Instruction> instructions;
 
+    public static Recipe apply(RecipeProperties properties, List<Instruction> instructions) {
+        return Recipe.apply(
+            properties.getBeerKey(),
+            properties.getBeerName(),
+            properties.getProductOwner(),
+            properties.getCreated(),
+            properties.getCreated(),
+            instructions);
+    }
+
+    public RecipeProperties getProperties() {
+        return RecipeProperties.apply(beerKey, beerName, productOwner, created, updated);
+    }
+
 }
