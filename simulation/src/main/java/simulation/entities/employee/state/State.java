@@ -3,6 +3,7 @@ package simulation.entities.employee.state;
 import akka.Done;
 import simulation.entities.employee.messages.BrewABeerCommand;
 import simulation.entities.employee.messages.ExecuteNextBrewingInstructionCommand;
+import simulation.entities.employee.messages.CheckMashTemperatureCommand;
 
 public interface State {
 
@@ -12,6 +13,11 @@ public interface State {
     }
 
     default State onExecuteNextBrewingInstructionCommand(ExecuteNextBrewingInstructionCommand cmd) {
+        cmd.getAck().tell(Done.getInstance());
+        return this;
+    }
+
+    default State onCheckMashTemperatureCommand(CheckMashTemperatureCommand cmd) {
         cmd.getAck().tell(Done.getInstance());
         return this;
     }

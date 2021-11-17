@@ -5,6 +5,7 @@ import systems.brewery.values.Ingredient;
 import systems.brewery.values.Recipe;
 import systems.brewery.values.instructions.AddIngredient;
 import systems.brewery.values.instructions.Boil;
+import systems.brewery.values.instructions.Mash;
 import systems.brewery.values.instructions.Instruction;
 import systems.reference.model.Employee;
 
@@ -23,6 +24,7 @@ public final class Recipes {
 
         instructions.add(AddIngredient.apply(Ingredient.apply("coffee", "g"), 10));
         instructions.add(AddIngredient.apply(Ingredient.apply("coke", "l"), 3));
+        instructions.add(Mash.apply(10,50,Duration.ofMinutes(5)));
         instructions.add(Boil.apply(Duration.ofHours(4)));
         instructions.add(Boil.apply(Duration.ofHours(8)));
 
