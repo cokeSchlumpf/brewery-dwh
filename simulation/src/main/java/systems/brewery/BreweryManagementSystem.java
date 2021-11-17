@@ -1,13 +1,20 @@
 package systems.brewery;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor(staticName = "apply")
 public final class BreweryManagementSystem {
 
+    public Brewery getBrewery() {
+        return Brewery.apply();
+    }
+
     public Recipes getRecipes() {
-        throw new RuntimeException("foo");
+        return Recipes.apply();
     }
 
     public IngredientProducts getIngredientProducts() {
-        throw new RuntimeException("foo");
+        return IngredientProducts.apply();
     }
 
 }

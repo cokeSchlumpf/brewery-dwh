@@ -8,11 +8,12 @@ import simulation.Operators;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PeriodicEvent implements ScheduledEvent {
+
+    private final String key;
 
     private final Creator<CompletionStage<Done>> operation;
 
@@ -20,20 +21,21 @@ public final class PeriodicEvent implements ScheduledEvent {
 
     private LocalDateTime runAfter;
 
-    public static PeriodicEvent apply(Creator<CompletionStage<Done>> operation, Duration interval) {
-        return new PeriodicEvent(operation, interval, LocalDateTime.MIN);
+    public static PeriodicEvent apply(String key, Creator<CompletionStage<Done>> operation, Duration interval) {
+        return new PeriodicEvent(key, operation, interval, LocalDateTime.MIN);
     }
 
     @Override
     public CompletionStage<Done> run(LocalDateTime dateTime) {
-        if (!dateTime.isBefore(runAfter)) {
-            return Operators.suppressExceptions(operation::create).thenApply(done -> {
-                this.runAfter = dateTime.plus(interval);
-                return done;
-            });
-        } else {
-            return CompletableFuture.completedFuture(Done.getInstance());
-        }
+        return Operators.suppressExceptions(operation::create).thenApply(done -> {
+            this.runAfter = dateTime.plus(interval);
+            return done;
+        });
+    }
+
+    @Override
+    public boolean shouldRun(LocalDateTime dateTime) {
+        return !dateTime.isBefore(runAfter);
     }
 
     @Override
@@ -41,4 +43,8 @@ public final class PeriodicEvent implements ScheduledEvent {
         return true;
     }
 
+    @Override
+    public String getKey() {
+        return key;
+    }
 }

@@ -1,36 +1,46 @@
 package systems.brewery;
 
 import lombok.AllArgsConstructor;
+import simulation.clock.Clock;
 
 @AllArgsConstructor(staticName = "apply")
 public class Brewery {
 
     public void startBrewing(String beerKey, String employeeId, int originalGravity) {
-        throw new RuntimeException("not implemented");
+        System.out.println("Start brewing ..." + Clock.getInstance().getNow());
     }
 
     public void addIngredient(String ingredientProductName, String ingredientProducer, double amount) {
-        throw new RuntimeException("not implemented");
+        System.out.println("Add ingredient ..." + Clock.getInstance().getNow());
     }
 
     public void startBoiling() {
-        throw new RuntimeException("not implemented");
+        System.out.println("Start boiling ..." + Clock.getInstance().getNow());
     }
 
     public void stopBoiling() {
-        throw new RuntimeException("not implemented");
+        System.out.println("Stop boiling ... " + Clock.getInstance().getNow());
     }
 
     public double readMashingTemperature() {
-        throw new RuntimeException("not implemented");
+        System.out.println("Read mashing temperature");
+        return 42.0;
     }
 
     public void startMashing() {
-        throw new RuntimeException("not implemented");
+        System.out.println("start mashing" + Clock.getInstance().getNow());
     }
 
     public void stopMashing() {
-        throw new RuntimeException("not implemented");
+        System.out.println("stop mashing" + Clock.getInstance().getNow());
+    }
+
+    public void startSparging() {
+        System.out.println("start sparging");
+    }
+
+    public void stopSparging() {
+        System.out.println("stop sparging");
     }
 
 }

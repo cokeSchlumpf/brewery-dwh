@@ -7,7 +7,7 @@ import java.time.Duration;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class Boil {
+public class Boil implements Instruction {
 
     /**
      * The duration in minutes of the boiling process.

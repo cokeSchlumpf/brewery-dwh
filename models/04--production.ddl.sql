@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS (
 CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_INGREDIENT_ADDS (
     id              INTEGER,
     ingredient      INTEGER,
-    amount          DOUBLE,
+    amount          NUMERIC,
 
     FOREIGN KEY (id) REFERENCES sppl.PROD_RECIPES_INSTRUCTIONS (id),
     FOREIGN KEY (ingredient) REFERENCES sppl.PROD_INGREDIENTS (id)
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_INGREDIENT_ADDS (
 
 CREATE TABLE IF NOT EXISTS sppl.PROD_RECIPES_INSTRUCTIONS_MASHINGS (
     id                  INTEGER,
-    start_temperature   DOUBLE,
-    end_temperature     DOUBLE,
+    start_temperature   NUMERIC,
+    end_temperature     NUMERIC,
     duration            INTEGER,
 
     FOREIGN KEY (id) REFERENCES sppl.PROD_RECIPES_INSTRUCTIONS (id)
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_INGREDIENT_ADDS (
     brew_id             INTEGER,
     moment              TIMESTAMP,
     ingredient_product  INTEGER,
-    amount              DOUBLE,
+    amount              NUMERIC,
 
     FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
     FOREIGN KEY (ingredient_product) REFERENCES sppl.PROD_INGREDIENT_PRODUCTS(id)

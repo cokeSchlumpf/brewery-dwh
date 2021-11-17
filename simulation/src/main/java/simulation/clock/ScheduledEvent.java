@@ -9,6 +9,10 @@ public interface ScheduledEvent {
 
     CompletionStage<Done> run(LocalDateTime dateTime);
 
+    boolean shouldRun(LocalDateTime dateTime);
+
     boolean isActive(LocalDateTime dateTime);
+
+    String getKey();
 
 }
