@@ -1,5 +1,6 @@
 package systems.brewery.ports;
 
+import common.DatabaseConfiguration;
 import lombok.AllArgsConstructor;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.RowMapper;
@@ -23,7 +24,18 @@ public final class BreweryRepositoryJdbcImpl implements BreweryRepositoryPort {
 
     @Override
     public void insertRecipe(RecipeProperties recipe) {
+        var query = "INSERT INTO sppl.PROD_RECIPES " +
+            "(beer_id, beer_name, product_owner, created, updated) VALUES " +
+            "(:beer_id, :beer_name, :product_owner, :created, :updated)";
 
+        jdbi.withHandle(handle -> handle
+            .createUpdate(query)
+            .bind("beer_id", recipe.getBeerId())
+            .bind("beer_name", recipe.getBeerName())
+            .bind("product_owner", recipe.getProductOwner())
+            .bind("created", recipe.getCreated())
+            .bind("updated", recipe.getUpdated())
+            .execute());
     }
 
     @Override

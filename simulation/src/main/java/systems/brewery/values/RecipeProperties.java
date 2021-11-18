@@ -12,11 +12,11 @@ import java.util.List;
 @AllArgsConstructor(staticName = "apply")
 public class RecipeProperties {
 
-    String beerKey;
+    String beerId;
 
     String beerName;
 
-    Employee productOwner;
+    String productOwner;
 
     Instant created;
 

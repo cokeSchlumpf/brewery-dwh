@@ -1,4 +1,4 @@
-package systems.brewery.ports;
+package common;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

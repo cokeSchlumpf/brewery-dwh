@@ -17,6 +17,6 @@ public class Employee {
 
     Instant dateOfBirth;
 
-    String text;
+    String position;
 
 }
