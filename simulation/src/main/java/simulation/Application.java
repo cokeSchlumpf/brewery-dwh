@@ -1,14 +1,19 @@
 package simulation;
 
-import akka.actor.typed.ActorSystem;
 import common.DatabaseConfiguration;
+import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import systems.brewery.IngredientProducts;
+import systems.brewery.ports.BreweryRepositoryJdbcImpl;
+import systems.brewery.values.Ingredient;
+import systems.brewery.values.IngredientProduct;
 import systems.reference.ReferenceDataManagement;
 import systems.reference.model.Employee;
 import systems.reference.ports.ReferenceDataRepositoryJdbcImpl;
 
 import java.time.Instant;
+import java.util.List;
 
 public final class Application {
 
@@ -27,7 +32,24 @@ public final class Application {
 
         System.out.println(refDataMgmt.findEmployeeById("johnny"));
 
-        ActorSystem.create(World.create(), "world");
+        // Create ingredientproducts and ingredients
+        var repository = BreweryRepositoryJdbcImpl.apply(databaseConfig);
+        var ingredientproducts = IngredientProducts.apply(repository);
+        var coffee = Ingredient.apply("coffee", "g");
+        var coke = Ingredient.apply("coke", "l");
+        repository.insertIngredient(coffee);
+        repository.insertIngredient(coke);
+
+        IngredientProduct ingredientProduct = IngredientProduct.apply(coffee, "122", "Mokka", "Fix");
+        repository.insertIngredientProduct(ingredientProduct);
+
+        ingredientproducts.registerOrUpdate(IngredientProduct.apply(coffee, "123", "Tchibo", "Kaffee"));
+        ingredientproducts.registerOrUpdate(IngredientProduct.apply(coffee, "122", "Mokka", "Fix"));
+        ingredientproducts.registerOrUpdate(IngredientProduct.apply(coke, "121", "Pepsi", "Cola"));
+        ingredientproducts.registerOrUpdate(IngredientProduct.apply(coke, "123", "Coca", "Cola"));
+        ingredientproducts.registerOrUpdate(IngredientProduct.apply(coke, "123", "Vita", "Cola"));
+
+        //ingredientproducts.remove("Fix", "Mokka");
     }
 
 }

@@ -1,6 +1,8 @@
 package systems.brewery;
 
+import common.DatabaseConfiguration;
 import lombok.AllArgsConstructor;
+import systems.brewery.ports.BreweryRepositoryJdbcImpl;
 
 @AllArgsConstructor(staticName = "apply")
 public final class BreweryManagementSystem {
@@ -19,7 +21,9 @@ public final class BreweryManagementSystem {
     }
 
     public IngredientProducts getIngredientProducts() {
-        return IngredientProducts.apply();
+        var databaseConfig = DatabaseConfiguration.apply("jdbc:postgresql://localhost:5432/brewery", "postgres", "password");
+        var repository = BreweryRepositoryJdbcImpl.apply(databaseConfig);
+        return IngredientProducts.apply(repository);
     }
 
 }

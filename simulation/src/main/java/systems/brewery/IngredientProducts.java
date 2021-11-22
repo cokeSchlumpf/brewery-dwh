@@ -1,21 +1,23 @@
 package systems.brewery;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import systems.brewery.ports.BreweryRepositoryJdbcImpl;
 import systems.brewery.values.Ingredient;
 import systems.brewery.values.IngredientProduct;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor(staticName = "apply")
 public final class IngredientProducts {
 
     private final List<IngredientProduct> products;
 
-    public static IngredientProducts apply() {
+    private final BreweryRepositoryJdbcImpl repository;
+
+
+    public static IngredientProducts apply(BreweryRepositoryJdbcImpl repository) {
         var products = new ArrayList<IngredientProduct>();
         var coffee = Ingredient.apply("coffee", "g");
         var coke = Ingredient.apply("coke", "l");
@@ -27,42 +29,59 @@ public final class IngredientProducts {
         products.add(IngredientProduct.apply(coke, "123", "Coca", "Cola"));
         products.add(IngredientProduct.apply(coke, "123", "Vita", "Cola"));
 
-        return apply(products);
+        return apply(products, repository);
     }
 
-    public Optional<IngredientProduct> find(String productName, String producerName) {
-        throw new RuntimeException("not implemented");
+    public Optional<IngredientProduct> find(String producerName, String productName) {
+
+        return repository.getIngredientProductByName(producerName, productName);
+
     }
+
 
     public List<IngredientProduct> findByIngredientName(String ingredientName) {
-        return products
-            .stream()
-            .filter(p -> p.getIngredient().getName().equals(ingredientName))
-            .collect(Collectors.toList());
+
+        return repository.findIngredientProductByIngredientName(ingredientName);
+
     }
 
-    public IngredientProduct get(String productName, String producerName) {
-        throw new RuntimeException("not implemented");
+
+    public Optional<IngredientProduct> get(String productName, String producerName) {
+
+        return repository.getIngredientProductByName(producerName, productName);
+
     }
 
     public List<IngredientProduct> list() {
-        throw new RuntimeException("not implemented");
+        return repository.selectAllIngredientProducts();
     }
 
-    public void register(String productName, String producerName, String producerProductId, String ingredientName) {
-        throw new RuntimeException("not implemented");
+    public void registerOrUpdate(IngredientProduct ingredientProduct) {
+        /*
+        repository
+                .getIngredientProductByName(ingredientProduct.getProducerName(), ingredientProduct.getProductName())
+                .ifPresentOrElse(
+                        ip -> repository.updateIngredientProduct(ingredientProduct),
+                        () -> repository.insertIngredientProduct(ingredientProduct)
+                );
+
+         */
+        repository.insertIngredientProduct(ingredientProduct);
     }
 
     public void remove(String productName, String producerName) {
-        throw new RuntimeException("not implemented");
+        repository.removeIngredientProduct(productName, producerName);
     }
 
     public void renameProduct(String currentProducerProductName, String producerName, String newProducerProductName) {
-        throw new RuntimeException("not implemented");
+        IngredientProduct ip = repository.getIngredientProductByName(producerName, currentProducerProductName).get();
+        repository.updateIngredientProduct(IngredientProduct.apply(ip.getIngredient(), ip.getProducerProductId(), ip.getProducerName(), newProducerProductName));
+
     }
 
     public void updateProductId(String producerName, String productName, String producerProductId) {
-        throw new RuntimeException("not implemented");
+        IngredientProduct ip = repository.getIngredientProductByName(producerName, productName).get();
+        repository.updateIngredientProduct(IngredientProduct.apply(ip.getIngredient(), producerProductId, ip.getProducerName(), ip.getProductName()));
     }
 
 }
