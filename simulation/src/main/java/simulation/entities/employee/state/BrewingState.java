@@ -9,6 +9,8 @@ import simulation.entities.employee.EmployeeContext;
 import simulation.entities.employee.messages.BrewABeerCommand;
 import simulation.entities.employee.messages.EmployeeMessage;
 import simulation.entities.employee.messages.ExecuteNextBrewingInstructionCommand;
+import simulation.entities.employee.messages.CheckMashTemperatureCommand;
+import systems.brewery.values.brewery.MashHeatingLevel;
 import systems.brewery.values.instructions.*;
 
 import java.time.Duration;
@@ -94,11 +96,24 @@ public final class BrewingState implements State {
     }
 
     private void mash(Mash instruction) {
+        var abs_increase = instruction.getEndTemperature() - instruction.getStartTemperature();
+        var duration = (instruction.getDuration().getSeconds())/60;
+        int slope = (int) (5*Math.round(abs_increase*100/(duration*5)));
+        MashHeatingLevel level;
+        switch (slope) {
+            case 20: level = MashHeatingLevel.LOW_HEAT; break;
+            case 40: level = MashHeatingLevel.LOW_MEDIUM_HEAT; break;
+            case 60: level = MashHeatingLevel.MEDIUM_HEAT; break;
+            case 80: level = MashHeatingLevel.MEDIUM_HIGH_HEAT; break;
+            default: level = MashHeatingLevel.HIGH_HEAT; break;
+        }
+
         Clock
             .scheduler(ctx.getActor())
-            .run(() -> ctx.getBrewery().startMashing())
+            .run(() -> ctx.getBrewery().startMashing(level, instruction.getStartTemperature()))
             .waitFor(P.randomDuration(instruction.getDuration(), Duration.ofMinutes(5)))
-            .run(() -> ctx.getBrewery().stopMashing())
+            //.run(() -> ctx.getBrewery().stopMashing())
+            .sendMessage(ref -> CheckMashTemperatureCommand.apply(instruction.getEndTemperature(),ref))
             .schedule();
     }
 
@@ -118,6 +133,29 @@ public final class BrewingState implements State {
             .run(() -> ctx.getBrewery().stopSparging())
             .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
             .schedule();
+    }
+
+    @Override
+    public State onCheckMashTemperatureCommand(CheckMashTemperatureCommand cmd) {
+        double temp = ctx.getBrewery().readMashingTemperature();
+
+        if(temp >= cmd.getEnd_temp()){
+            Clock
+                    .scheduler(ctx.getActor())
+                    .run(() -> ctx.getBrewery().stopMashing())
+                    .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
+                    .schedule();
+        }
+        else{
+            Clock
+                    .scheduler(ctx.getActor())
+                    .waitFor(P.randomDuration(Duration.ofMinutes(2), Duration.ofMinutes(1)))
+                    .sendMessage(ref -> CheckMashTemperatureCommand.apply(cmd.getEnd_temp(),ref))
+                    .schedule();
+        }
+
+        cmd.getAck().tell(Done.getInstance());
+        return this;
     }
 
 }

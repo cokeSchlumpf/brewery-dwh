@@ -5,6 +5,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import simulation.entities.employee.messages.BrewABeerCommand;
+import simulation.entities.employee.messages.CheckMashTemperatureCommand;
 import simulation.entities.employee.messages.EmployeeMessage;
 import simulation.entities.employee.messages.ExecuteNextBrewingInstructionCommand;
 import simulation.entities.employee.state.IdleState;
@@ -36,6 +37,10 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
             })
             .onMessage(ExecuteNextBrewingInstructionCommand.class, cmd -> {
                 this.state = state.onExecuteNextBrewingInstructionCommand(cmd);
+                return Behaviors.same();
+            })
+            .onMessage(CheckMashTemperatureCommand.class, cmd -> {
+                this.state = state.onCheckMashTemperatureCommand(cmd);
                 return Behaviors.same();
             })
             .build();
