@@ -4,10 +4,8 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import simulation.entities.employee.messages.BrewABeerCommand;
-import simulation.entities.employee.messages.CheckMashTemperatureCommand;
-import simulation.entities.employee.messages.EmployeeMessage;
-import simulation.entities.employee.messages.ExecuteNextBrewingInstructionCommand;
+import simulation.entities.brewery.Brewery;
+import simulation.entities.employee.messages.*;
 import simulation.entities.employee.state.IdleState;
 import simulation.entities.employee.state.State;
 import systems.brewery.BreweryManagementSystem;
@@ -21,9 +19,9 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
         this.state = IdleState.apply(ctx);
     }
 
-    public static Behavior<EmployeeMessage> create(String employeeName) {
+    public static Behavior<EmployeeMessage> create(BreweryManagementSystem bms, systems.reference.model.Employee employee, Brewery brewery) {
         return Behaviors.setup(actor -> {
-            var ctx = EmployeeContext.apply(actor, BreweryManagementSystem.apply(), employeeName);
+            var ctx = EmployeeContext.apply(actor, bms, brewery, employee);
             return new Employee(ctx);
         });
     }
@@ -41,6 +39,10 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
             })
             .onMessage(CheckMashTemperatureCommand.class, cmd -> {
                 this.state = state.onCheckMashTemperatureCommand(cmd);
+                return Behaviors.same();
+            })
+            .onMessage(CheckHeatingTemperatureCommand.class, cmd -> {
+                this.state = state.onCheckHeatingTemperatureCommand(cmd);
                 return Behaviors.same();
             })
             .build();

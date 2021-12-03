@@ -7,7 +7,9 @@ import akka.actor.typed.javadsl.ActorContext;
 import lombok.AllArgsConstructor;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -40,9 +42,9 @@ public final class Scheduler<T> {
         return waitFor(delay, UUID.randomUUID().toString());
     }
 
-    public Scheduler<T> run(Consumer<LocalDateTime> op) {
+    public Scheduler<T> run(Consumer<Instant> op) {
         expression = expression.thenApply(dateTime -> {
-            op.accept(dateTime);
+            op.accept(dateTime.toInstant(ZoneOffset.UTC));
             return dateTime;
         });
 
@@ -58,14 +60,14 @@ public final class Scheduler<T> {
         return this;
     }
 
-    public Scheduler<T> sendMessage(BiFunction<LocalDateTime, ActorRef<Done>, T> messageFactory) {
+    public Scheduler<T> sendMessage(BiFunction<Instant, ActorRef<Done>, T> messageFactory) {
         expression = expression.thenApply(moment -> {
             clock
                 .startSingleTimer(
                     UUID.randomUUID().toString(),
                     Duration.ZERO,
                     ctx,
-                    (ActorRef<Done> ref) -> messageFactory.apply(moment, ref));
+                    (ActorRef<Done> ref) -> messageFactory.apply(moment.toInstant(ZoneOffset.UTC), ref));
 
             return moment;
         });

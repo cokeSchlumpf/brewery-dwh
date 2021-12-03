@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class Mashed {
+public class Mashed implements BrewEvent {
 
     /**
      * The moment mashing started.

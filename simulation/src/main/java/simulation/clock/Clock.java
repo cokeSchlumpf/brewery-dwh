@@ -11,9 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.Operators;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
@@ -66,6 +64,10 @@ public final class Clock {
 
     public LocalDateTime getNow() {
         return now;
+    }
+
+    public Instant getNowAsInstant() {
+        return now.toInstant(ZoneOffset.UTC);
     }
 
     public KillSwitch run() {
