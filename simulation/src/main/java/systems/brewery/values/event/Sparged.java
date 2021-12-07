@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class Sparged {
+public class Sparged implements BrewEvent {
 
     Instant start;
 

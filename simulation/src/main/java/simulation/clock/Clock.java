@@ -5,15 +5,12 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.AskPattern;
 import akka.japi.Creator;
+import common.Operators;
 import lombok.AllArgsConstructor;
-import lombok.Synchronized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.Operators;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
@@ -61,11 +58,15 @@ public final class Clock {
     }
 
     public static <T> Scheduler<T> scheduler(ActorContext<T> ctx) {
-        return Scheduler.apply(getInstance(), ctx);
+        return Scheduler.apply(ctx);
     }
 
     public LocalDateTime getNow() {
         return now;
+    }
+
+    public Instant getNowAsInstant() {
+        return now.toInstant(ZoneOffset.UTC);
     }
 
     public KillSwitch run() {
@@ -136,7 +137,7 @@ public final class Clock {
         startSingleTimer(
             key, delay,
             done -> AskPattern
-                .ask(ctx.getSelf(), msg::apply, Duration.ofSeconds(10), ctx.getSystem().scheduler())
+                .ask(ctx.getSelf(), msg::apply, Duration.ofSeconds(300), ctx.getSystem().scheduler())
                 .thenApply(done::complete));
     }
 

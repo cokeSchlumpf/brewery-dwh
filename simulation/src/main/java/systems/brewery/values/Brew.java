@@ -39,12 +39,12 @@ public class Brew {
     /**
      * I have no idea what that is, but some value which can be measured in the beginning.
      */
-    Integer originalGravity;
+    Double originalGravity;
 
     /**
      * Same here, no glue. But obviously it can be measured in the end.
      */
-    Integer finalGravity;
+    Double finalGravity;
 
     /**
      * The list of events/ actions executed during the brew.
@@ -56,7 +56,7 @@ public class Brew {
      */
     List<Bottling> bottlings;
 
-    public static Brew apply(Recipe beer, Employee brewer, Instant start, int originalGravity) {
+    public static Brew apply(Recipe beer, Employee brewer, Instant start, double originalGravity) {
         return apply(beer, brewer, start, null, originalGravity, null, List.of(), List.of());
     }
 
@@ -64,7 +64,7 @@ public class Brew {
         return Optional.ofNullable(end);
     }
 
-    public Optional<Integer> getFinalGravity() {
+    public Optional<Double> getFinalGravity() {
         return Optional.ofNullable(finalGravity);
     }
 

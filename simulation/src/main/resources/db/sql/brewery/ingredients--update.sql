@@ -1,0 +1,1 @@
+UPDATE sppl.PROD_INGREDIENTS SET unit = :unit, name = :name WHERE id = :id;

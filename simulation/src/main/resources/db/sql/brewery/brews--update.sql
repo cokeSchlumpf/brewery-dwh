@@ -1,0 +1,1 @@
+UPDATE sppl.PROD_BREWS SET brew_end = :brew_end, final_gravity = :final_gravity WHERE id = :id;

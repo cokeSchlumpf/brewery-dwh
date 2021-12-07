@@ -1,0 +1,1 @@
+DELETE FROM sppl.PROD_RECIPES WHERE beer_id = beer_key;

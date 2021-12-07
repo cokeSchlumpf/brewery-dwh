@@ -1,0 +1,1 @@
+SELECT id FROM sppl.PROD_INGREDIENTS WHERE name = :name;

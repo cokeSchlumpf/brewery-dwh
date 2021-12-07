@@ -1,6 +1,6 @@
 package systems.reference.ports;
 
-import common.DatabaseConfiguration;
+import common.configs.DatabaseConfiguration;
 import lombok.AllArgsConstructor;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.RowMapper;

@@ -8,7 +8,7 @@ import java.time.Instant;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class IngredientAdded {
+public class IngredientAdded implements BrewEvent {
 
     Instant moment;
 

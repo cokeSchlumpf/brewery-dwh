@@ -17,6 +17,10 @@ public class P {
         return random.nextGaussian() * sd + avg;
     }
 
+    public static double randomDouble(double avg, double sd) {
+        return random.nextGaussian() * sd + avg;
+    }
+
     public static <T> T randomItem(List<T> items) {
         return items.get(random.nextInt(items.size()));
     }

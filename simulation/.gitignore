@@ -1,6 +1,8 @@
-
 # Created by https://www.toptal.com/developers/gitignore/api/java,intellij,macos,maven
 # Edit at https://www.toptal.com/developers/gitignore?templates=java,intellij,macos,maven
+
+### Project-specific ###
+application.local.conf
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
