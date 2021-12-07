@@ -26,7 +26,7 @@ public final class IngredientProductsJdbcImpl implements IngredientProducts {
         ingredients.insertOrUpdateIngredient(ingredientProduct.getIngredient());
 
         var ingredientId = ingredients.getIngredientIdByName(ingredientProduct.getIngredient().getName());
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredient-products--insert");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredient-products--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -39,7 +39,7 @@ public final class IngredientProductsJdbcImpl implements IngredientProducts {
 
     @Override
     public List<IngredientProduct> selectAllIngredientProducts() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredient-products--select.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredient-products--select.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)
@@ -49,7 +49,7 @@ public final class IngredientProductsJdbcImpl implements IngredientProducts {
 
     @Override
     public Optional<IngredientProduct> getIngredientProductByName(String producerName, String productName) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredient-products--select-by-producer-and" +
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredient-products--select-by-producer-and" +
             "-product.sql");
 
         return jdbi.withHandle(handle -> handle
@@ -62,7 +62,7 @@ public final class IngredientProductsJdbcImpl implements IngredientProducts {
 
     @Override
     public int getIngredientProductIdByName(String producerName, String productName) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredient-products--select-by-producer-and" +
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredient-products--select-by-producer-and" +
             "-product.sql");
 
         return jdbi.withHandle(handle -> handle
@@ -75,7 +75,7 @@ public final class IngredientProductsJdbcImpl implements IngredientProducts {
 
     @Override
     public List<IngredientProduct> findIngredientProductByIngredientName(String ingredientName) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredient-products--select-by-ingredient.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredient-products--select-by-ingredient.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)
@@ -86,7 +86,7 @@ public final class IngredientProductsJdbcImpl implements IngredientProducts {
 
     @Override
     public void removeIngredientProduct(String productName, String producerName) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredient-products--delete.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredient-products--delete.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -97,7 +97,7 @@ public final class IngredientProductsJdbcImpl implements IngredientProducts {
 
     @Override
     public void clear() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredient-products--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredient-products--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)

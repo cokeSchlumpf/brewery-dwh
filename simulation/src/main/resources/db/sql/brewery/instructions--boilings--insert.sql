@@ -1,1 +1,1 @@
-INSERT INTO sppl.PROD_RECIPES_INSTRUCTIONS_BOILINGS SET (id, duration) VALUES (:id, :duration);
+INSERT INTO sppl.PROD_RECIPES_INSTRUCTIONS_BOILINGS (id, duration) VALUES (:id, :duration);

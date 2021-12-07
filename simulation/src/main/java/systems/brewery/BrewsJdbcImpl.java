@@ -17,7 +17,7 @@ public final class BrewsJdbcImpl implements Brews {
 
     @Override
     public void insertBrew(Brew brew) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -31,7 +31,7 @@ public final class BrewsJdbcImpl implements Brews {
     @Override
     public void updateBrew(Instant finished, double finalGravity) {
         var currentBrewId = getLatestBrewId();
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--update.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--update.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -68,7 +68,7 @@ public final class BrewsJdbcImpl implements Brews {
         clearIngredientAdded();
         clearSparged();
 
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -76,7 +76,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void clearBoiled() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--boilings--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--boilings--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -84,7 +84,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void clearIngredientAdded() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--ingredient-added--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--ingredient-added--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -92,7 +92,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void clearMashed() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--mashed--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--mashed--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -100,7 +100,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void clearRested() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--rested--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--rested--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -108,7 +108,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void clearSparged() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--sparged--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--sparged--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -116,7 +116,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void logBoiled(int brewId, Boiled boiled) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--boilings--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--boilings--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -127,7 +127,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void logIngredientAdded(int brewId, IngredientAdded ingredientAdded) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--ingredient-added--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--ingredient-added--insert.sql");
 
         var ingredientProductIdByName = ingredientProducts.getIngredientProductIdByName(
             ingredientAdded.getProduct().getProducerName(),
@@ -143,7 +143,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void logMashed(int brewId, Mashed mashed) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--mashed--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--mashed--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -156,7 +156,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void logRested(int brewId, Rested rested) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--rested--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--rested--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -167,7 +167,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private void logSparged(int brewId, Sparged sparged) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--sparged--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--sparged--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -178,7 +178,7 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     private Integer getLatestBrewId() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--select-by-start.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--select-by-start.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)

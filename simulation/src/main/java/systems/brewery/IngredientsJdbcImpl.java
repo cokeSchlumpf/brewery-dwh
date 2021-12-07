@@ -18,7 +18,7 @@ public final class IngredientsJdbcImpl implements Ingredients {
 
     @Override
     public void insertIngredient(Ingredient ingredient) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredients--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredients--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -29,7 +29,7 @@ public final class IngredientsJdbcImpl implements Ingredients {
 
     @Override
     public Optional<Ingredient> getIngredientByName(String name) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredients--select-by-name.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredients--select-by-name.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)
@@ -51,7 +51,7 @@ public final class IngredientsJdbcImpl implements Ingredients {
         if (existingId.isEmpty()) {
             insertIngredient(ingredient);
         } else {
-            var query = Templates.renderTemplateFromResources("sql/brewery/ingredients--update.sql");
+            var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredients--update.sql");
 
             jdbi.withHandle(handle -> handle
                 .createUpdate(query)
@@ -64,7 +64,7 @@ public final class IngredientsJdbcImpl implements Ingredients {
 
     @Override
     public void removeIngredient(String ingredient) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredients--delete.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredients--delete.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -74,7 +74,7 @@ public final class IngredientsJdbcImpl implements Ingredients {
 
     @Override
     public void clear() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredients--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredients--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -82,7 +82,7 @@ public final class IngredientsJdbcImpl implements Ingredients {
     }
 
     private Optional<Integer> findIngredientIdByName(String ingredientName) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/ingredients--select-id-by-name.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredients--select-id-by-name.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)

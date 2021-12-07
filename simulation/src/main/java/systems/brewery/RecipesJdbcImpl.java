@@ -10,7 +10,6 @@ import systems.reference.model.Employee;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,7 +23,7 @@ public final class RecipesJdbcImpl implements Recipes {
 
     @Override
     public void insertRecipe(Recipe recipe) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/recipes--insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/recipes--insert.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -42,7 +41,7 @@ public final class RecipesJdbcImpl implements Recipes {
 
     @Override
     public Optional<Recipe> findRecipeByName(String beerKey) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/recipes--select-by-beer-id.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/recipes--select-by-beer-id.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)
@@ -64,7 +63,7 @@ public final class RecipesJdbcImpl implements Recipes {
 
     @Override
     public void removeRecipe(String beerKey) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/recipes--delete.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/recipes--delete.sql");
         removeInstructions(beerKey);
 
         jdbi.withHandle(handle -> handle
@@ -76,7 +75,7 @@ public final class RecipesJdbcImpl implements Recipes {
     @Override
     public void clear() {
         clearInstructions();
-        var query = Templates.renderTemplateFromResources("sql/brewery/recipes--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/recipes--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -85,12 +84,12 @@ public final class RecipesJdbcImpl implements Recipes {
 
     private void clearInstructions() {
         clearBoilings();
-        clearRested();
-        clearSparged();
+        clearRests();
+        clearSparges();
         clearMashings();
         clearIngredientAdds();
 
-        var query = Templates.renderTemplateFromResources("sql/brewery/instructions--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -98,7 +97,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private void clearBoilings() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/instructions--boilings--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--boilings--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -106,7 +105,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private void clearIngredientAdds() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/instructions--ingredient-adds--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--ingredient-adds--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -114,23 +113,23 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private void clearMashings() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/instructions--mashings--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--mashings--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
             .execute());
     }
 
-    private void clearRested() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/instructions--mashing-rests--delete-all.sql");
+    private void clearRests() {
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--mashing-rests--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
             .execute());
     }
 
-    private void clearSparged() {
-        var query = Templates.renderTemplateFromResources("sql/brewery/brews--sparged--delete-all.sql");
+    private void clearSparges() {
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--sparge--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -138,8 +137,8 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private void insertInstruction(Recipe recipe, Instruction instruction, int sort) {
-        var insertInstructionQuery = Templates.renderTemplateFromResources("sql/brewery/instructions--insert.sql");
-        var selectInstructionQuery = Templates.renderTemplateFromResources("sql/brewery/instructions--select-id.sql");
+        var insertInstructionQuery = Templates.renderTemplateFromResources("db/sql/brewery/instructions--insert.sql");
+        var selectInstructionQuery = Templates.renderTemplateFromResources("db/sql/brewery/instructions--select-id.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(insertInstructionQuery)
@@ -156,7 +155,7 @@ public final class RecipesJdbcImpl implements Recipes {
 
         if (instruction instanceof AddIngredient) {
             var inst = (AddIngredient) instruction;
-            var query = Templates.renderTemplateFromResources("sql/brewery/instructions--ingredient-adds--insert.sql");
+            var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--ingredient-adds--insert.sql");
             var ingredientId = ingredients.getIngredientIdByName(inst.getIngredient().getName());
 
             jdbi.withHandle(handle -> handle
@@ -167,41 +166,41 @@ public final class RecipesJdbcImpl implements Recipes {
                 .execute());
         } else if (instruction instanceof Boil) {
             var inst = (Boil) instruction;
-            var query = Templates.renderTemplateFromResources("sql/brewery/instructions--boilings--insert.sql");
+            var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--boilings--insert.sql");
 
             jdbi.withHandle(handle -> handle
                 .createUpdate(query)
                 .bind("id", instructionId)
-                .bind("duration", inst.getDuration().get(ChronoUnit.MINUTES))
+                .bind("duration", inst.getDuration().toMinutes())
                 .execute());
         } else if (instruction instanceof Mash) {
             var inst = (Mash) instruction;
-            var query = Templates.renderTemplateFromResources("sql/brewery/instructions--mashings--insert.sql");
+            var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--mashings--insert.sql");
 
             jdbi.withHandle(handle -> handle
                 .createUpdate(query)
                 .bind("id", instructionId)
                 .bind("start_temperature", inst.getStartTemperature())
                 .bind("end_temperature", inst.getEndTemperature())
-                .bind("duration", inst.getDuration().get(ChronoUnit.MINUTES))
+                .bind("duration", inst.getDuration().toMinutes())
                 .execute());
         } else if (instruction instanceof Rest) {
             var inst = (Rest) instruction;
-            var query = Templates.renderTemplateFromResources("sql/brewery/instructions--mashing-rests--insert.sql");
+            var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--mashing-rests--insert.sql");
 
             jdbi.withHandle(handle -> handle
                 .createUpdate(query)
                 .bind("id", instructionId)
-                .bind("duration", inst.getDuration().get(ChronoUnit.MINUTES))
+                .bind("duration", inst.getDuration().toMinutes())
                 .execute());
         } else if (instruction instanceof Sparge) {
             var inst = (Sparge) instruction;
-            var query = Templates.renderTemplateFromResources("sql/brewery/instructions--sparge--insert.sql");
+            var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--sparge--insert.sql");
 
             jdbi.withHandle(handle -> handle
                 .createUpdate(query)
                 .bind("id", instructionId)
-                .bind("duration", inst.getDuration().get(ChronoUnit.MINUTES))
+                .bind("duration", inst.getDuration().toMinutes())
                 .execute());
         } else {
             throw new RuntimeException(String.format("Unknown instruction type `%s`.", instruction.getClass()
@@ -210,7 +209,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private List<Instruction> readInstructions(String beerKey) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/instructions--select-by-recipe.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--select-by-recipe.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)
@@ -235,7 +234,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private Optional<AddIngredient> readInstructionAsAddIngredient(int instructionId) {
-        var selectInstruction = Templates.renderTemplateFromResources("sql/brewery/instructions--ingredient-adds" +
+        var selectInstruction = Templates.renderTemplateFromResources("db/sql/brewery/instructions--ingredient-adds" +
             "--select-by-id.sql");
 
         return jdbi.withHandle(handle -> handle
@@ -247,7 +246,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private Optional<Boil> readInstructionAsBoil(int instructionId) {
-        var selectInstruction = Templates.renderTemplateFromResources("sql/brewery/instructions--boilings--select-by" +
+        var selectInstruction = Templates.renderTemplateFromResources("db/sql/brewery/instructions--boilings--select-by" +
             "-id.sql");
 
         return jdbi.withHandle(handle -> handle
@@ -258,7 +257,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private Optional<Rest> readInstructionAsMashingRest(int instructionId) {
-        var selectInstruction = Templates.renderTemplateFromResources("sql/brewery/instructions--mashing-rests" +
+        var selectInstruction = Templates.renderTemplateFromResources("db/sql/brewery/instructions--mashing-rests" +
             "--select-by-id.sql");
 
         return jdbi.withHandle(handle -> handle
@@ -269,7 +268,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private Optional<Mash> readInstructionAsMash(int instructionId) {
-        var selectInstruction = Templates.renderTemplateFromResources("sql/brewery/instructions--mashings--select-by" +
+        var selectInstruction = Templates.renderTemplateFromResources("db/sql/brewery/instructions--mashings--select-by" +
             "-id.sql");
 
         return jdbi.withHandle(handle -> handle
@@ -282,7 +281,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private Optional<Sparge> readInstructionAsSparge(int instructionId) {
-        var selectInstruction = Templates.renderTemplateFromResources("sql/brewery/instructions--sparge--select-by" +
+        var selectInstruction = Templates.renderTemplateFromResources("db/sql/brewery/instructions--sparge--select-by" +
             "-id.sql");
 
         return jdbi.withHandle(handle -> handle
@@ -293,7 +292,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private void removeInstructions(String beerKey) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/instructions--select-ids.sql");
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/instructions--select-ids.sql");
 
         jdbi.withHandle(handle -> handle
             .createQuery(query)
@@ -306,7 +305,7 @@ public final class RecipesJdbcImpl implements Recipes {
             removeInstruction(id, "instructions--mashings--delete.sql");
             removeInstruction(id, "instructions--sparge--delete.sql");
 
-            var deleteQuery = Templates.renderTemplateFromResources("sql/brewery/instructions--select-ids.sql");
+            var deleteQuery = Templates.renderTemplateFromResources("db/sql/brewery/instructions--select-ids.sql");
 
             jdbi.withHandle(handle -> handle
                 .createUpdate(deleteQuery)
@@ -316,7 +315,7 @@ public final class RecipesJdbcImpl implements Recipes {
     }
 
     private void removeInstruction(int id, String template) {
-        var query = Templates.renderTemplateFromResources("sql/brewery/" + template);
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/" + template);
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)

@@ -132,6 +132,16 @@ public final class BrewingState implements State {
         return this;
     }
 
+    @Override
+    public State onCheckHeatingTemperatureCommand(CheckHeatingTemperatureCommand cmd) {
+        double currentTemperature = ctx.getBrewery().readTemperature();
+
+        if (currentTemperature < cmd.getInstruction().getStartTemperature()) {
+
+        }
+        return State.super.onCheckHeatingTemperatureCommand(cmd);
+    }
+
     private void addIngredient(AddIngredient instruction) {
         Clock
             .scheduler(ctx.getActor())
@@ -258,6 +268,7 @@ public final class BrewingState implements State {
     private HeatingLevel getHeatingLevel(double startTemperature, double endTemperature, Duration duration) {
         return Arrays
             .stream(HeatingLevel.values())
+            .filter(level -> !level.equals(HeatingLevel.L00_OFF))
             .map(level -> Pair.of(level, getExpectedHeatingDuration(level, startTemperature, endTemperature)))
             .map(p -> Pair.of(p.getLeft(), Math.abs(duration.minus(p.getRight()).getSeconds())))
             .min(Comparator.comparing(Pair::getRight))
@@ -292,7 +303,7 @@ public final class BrewingState implements State {
             case L09_HIGH_HEAT:
                 return 15;
             default:
-                return 0;
+                throw new RuntimeException(String.format("This method should not be called for %s", HeatingLevel.L00_OFF));
         }
     }
 

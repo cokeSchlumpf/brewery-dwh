@@ -29,6 +29,10 @@ public final class Application {
         /*
          * Initialize simulation.
          */
+        Clock.getInstance().startPeriodicTimer("Say time", Duration.ofDays(1), () -> {
+            System.out.println("---");
+        });
+
         var system = ActorSystem.create(World.create(refDataMgmt, bms, brewery), "world");
         var killSwitch = Clock.getInstance().run();
 
