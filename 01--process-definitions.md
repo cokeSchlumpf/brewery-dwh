@@ -1,10 +1,10 @@
-# Sepplpeter's MicroBrewery Processes
+# Datenbräu MicroBrewery Processes
 
-This document describes the processes of the MicroBrewery Sepplpeter's. The brewery is owned and run by three friends who manage the whole small company. The friends are Mike, Eleanor and Johnny.
+This document describes the processes of the MicroBrewery Datenbräu. The brewery is owned and run by three friends who manage the whole small company. The friends are Mike, Eleanor and Johnny.
 
 ## Assumptions
 
-* We assume that our MicroBrewery already successfully produces and sells two types of Beer: Sepplpeter's Weiss and Sepplpeter's Original.
+* We assume that our MicroBrewery already successfully produces and sells two types of Beer: Datenbräu Weiss and Datenbräu Original.
 * The brewery wants to produce one additional seasonal beer in summer and in winter.
 
 ## Product Development and Production Planning
