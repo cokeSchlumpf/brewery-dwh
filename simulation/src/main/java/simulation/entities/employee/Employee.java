@@ -4,6 +4,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import org.apache.commons.lang3.concurrent.CircuitBreakingException;
 import simulation.entities.brewery.Brewery;
 import simulation.entities.employee.messages.*;
 import simulation.entities.employee.state.IdleState;
@@ -43,6 +44,22 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
             })
             .onMessage(CheckHeatingTemperatureCommand.class, cmd -> {
                 this.state = state.onCheckHeatingTemperatureCommand(cmd);
+                return Behaviors.same();
+            })
+            .onMessage(CheckBeerSupply.class, cmd -> {
+                this.state = state.onCheckBeerSupplyCommand(cmd);
+                return Behaviors.same();
+            })
+            .onMessage(BeerOrderCommand.class, cmd -> {
+                this.state = state.onBeerOrderCommand(cmd);
+                return Behaviors.same();
+            })
+            .onMessage(BottlingBrewCommand.class, cmd -> {
+                this.state = state.onBottlingBrewCommand(cmd);
+                return Behaviors.same();
+            })
+            .onMessage(PutBrewIntoStorageCommand.class, cmd -> {
+                this.state = state.onPutBrewIntoStorageCommand(cmd);
                 return Behaviors.same();
             })
             .build();

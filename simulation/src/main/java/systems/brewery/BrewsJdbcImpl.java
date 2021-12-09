@@ -3,6 +3,7 @@ package systems.brewery;
 import common.Templates;
 import lombok.AllArgsConstructor;
 import org.jdbi.v3.core.Jdbi;
+import systems.brewery.values.Bottling;
 import systems.brewery.values.Brew;
 import systems.brewery.values.event.*;
 
@@ -61,12 +62,28 @@ public final class BrewsJdbcImpl implements Brews {
     }
 
     @Override
+    public void logBottling(Bottling bottling) {
+        var currentBrewId = getLatestBrewId();
+
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--bottlings--insert.sql");
+        jdbi.withHandle(handle -> handle
+                .createUpdate(query)
+                .bind("brew", currentBrewId)
+                .bind("bottled", bottling.getBottled())
+                .bind("best_before_date", bottling.getBestBefore())
+                .bind("quantity", bottling.getQuantity())
+                .bind("bottles", bottling.getBottles())
+                .execute());
+    }
+
+    @Override
     public void clear() {
         clearBoiled();
         clearMashed();
         clearRested();
         clearIngredientAdded();
         clearSparged();
+        clearBottlings();
 
         var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--delete-all.sql");
 
@@ -109,6 +126,14 @@ public final class BrewsJdbcImpl implements Brews {
 
     private void clearSparged() {
         var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--sparged--delete-all.sql");
+
+        jdbi.withHandle(handle -> handle
+            .createUpdate(query)
+            .execute());
+    }
+
+    private void clearBottlings() {
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--bottlings--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
             .createUpdate(query)
@@ -185,4 +210,5 @@ public final class BrewsJdbcImpl implements Brews {
             .map((rs, ctx) -> rs.getInt("id"))
             .first());
     }
+
 }

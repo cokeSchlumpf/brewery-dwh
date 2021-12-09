@@ -1,15 +1,21 @@
 package simulation.entities.employee.state;
 
 import akka.Done;
-import simulation.entities.employee.messages.BrewABeerCommand;
-import simulation.entities.employee.messages.CheckHeatingTemperatureCommand;
-import simulation.entities.employee.messages.ExecuteNextBrewingInstructionCommand;
-import simulation.entities.employee.messages.CheckMashTemperatureCommand;
+import simulation.entities.employee.messages.*;
 
 public interface State {
 
     default State onBrewABeerCommand(BrewABeerCommand cmd) {
         cmd.getAck().tell(Done.getInstance());
+        return this;
+    }
+
+    default State onCheckBeerSupplyCommand(CheckBeerSupply cmd) {
+        //cmd.getAck().tell(Done.getInstance());
+        return this;
+    }
+
+    default State onCheckBeerSupplyCommandResponse(CheckBeerSupplyResponse cmd){
         return this;
     }
 
@@ -25,6 +31,19 @@ public interface State {
 
     default State onCheckHeatingTemperatureCommand(CheckHeatingTemperatureCommand cmd) {
         cmd.getAck().tell(Done.getInstance());
+        return this;
+    }
+
+    default State onBottlingBrewCommand(BottlingBrewCommand cmd){
+        cmd.getAck().tell(Done.getInstance());
+        return this;
+    }
+
+    default State onBeerOrderCommand(BeerOrderCommand cmd){
+        return this;
+    }
+
+    default State onPutBrewIntoStorageCommand(PutBrewIntoStorageCommand cmd){
         return this;
     }
 

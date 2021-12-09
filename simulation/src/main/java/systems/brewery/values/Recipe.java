@@ -41,7 +41,7 @@ public class Recipe {
         instructions.add(AddIngredient.apply(Ingredient.malt(), 72));
         instructions.add(Mash.apply(25.00, 40.00, Duration.ofHours(4)));
         instructions.add(Rest.apply(Duration.ofHours(2)));
-        instructions.add(Mash.apply(40.00, 70.00, Duration.ofHours(3)));
+        instructions.add(Mash.apply(40.00, 50.00, Duration.ofHours(3)));
         instructions.add(Rest.apply(Duration.ofHours(1)));
         instructions.add(Mash.apply(70.00, 90.00, Duration.ofHours(5)));
         instructions.add(Rest.apply(Duration.ofHours(3)));

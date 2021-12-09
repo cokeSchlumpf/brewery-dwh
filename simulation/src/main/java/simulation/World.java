@@ -10,8 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simulation.clock.Clock;
 import simulation.entities.brewery.Brewery;
+import simulation.entities.customer.Customer;
+import simulation.entities.customer.messages.AskBeerSupply;
+import simulation.entities.customer.messages.CustomerMessage;
 import simulation.entities.employee.Employee;
 import simulation.entities.employee.messages.BrewABeerCommand;
+import simulation.entities.employee.messages.CheckBeerSupply;
 import simulation.entities.employee.messages.EmployeeMessage;
 import systems.brewery.BreweryManagementSystem;
 import systems.brewery.values.Ingredient;
@@ -35,14 +39,25 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
 
     }
 
+
+    @AllArgsConstructor(staticName = "apply")
+    public static class HelloCustomerWorld implements WorldMessage {
+
+        ActorRef<StatusReply<Done>> done;
+
+    }
+
     private final ActorContext<WorldMessage> ctx;
 
     private final ActorRef<EmployeeMessage> johnny;
 
-    private World(ActorContext<WorldMessage> context, ActorRef<EmployeeMessage> johnny) {
+    private final ActorRef<CustomerMessage> sam;
+
+    private World(ActorContext<WorldMessage> context, ActorRef<EmployeeMessage> johnny, ActorRef<CustomerMessage> sam) {
         super(context);
         this.ctx = context;
         this.johnny = johnny;
+        this.sam = sam;
     }
 
     public static Behavior<WorldMessage> create(ReferenceDataManagement refDataManagement, BreweryManagementSystem bms, Brewery brewery) {
@@ -72,10 +87,12 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
                 .getInstance()
                 .startSingleTimer("brew a beer", Duration.ofDays(1), done -> AskPattern
                     .ask(ctx.getSelf(), HelloWorld::apply, Duration.ofSeconds(10), ctx.getSystem().scheduler())
-                    .thenApply(reply -> done.complete(reply.getValue())));
+                    .thenApply(reply -> done.complete(reply.getValue()))
+                );
 
             var johnny = ctx.spawn(Employee.create(bms, systems.reference.model.Employee.johnny(), brewery), "johnny");
-            return new World(ctx, johnny);
+            var sam = ctx.spawn(Customer.create(johnny), "sam");
+            return new World(ctx, johnny, sam);
         });
     }
 
@@ -93,6 +110,16 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
 
                 return Behaviors.same();
             })
+            .onMessage(HelloCustomerWorld.class, msg -> {
+                AskPattern
+                        .ask(
+                                sam,
+                                (ActorRef<Done> ref) -> AskBeerSupply.apply(ref),
+                                Duration.ofSeconds(10),
+                                ctx.getSystem().scheduler())
+                        .thenAccept(done -> msg.done.tell(StatusReply.success(done)));
+                return Behaviors.same();
+                })
             .build();
     }
 

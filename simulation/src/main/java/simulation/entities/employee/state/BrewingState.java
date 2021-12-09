@@ -5,18 +5,20 @@ import common.P;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import simulation.clock.Clock;
+import simulation.entities.brewery.values.BottleSize;
 import simulation.entities.brewery.values.HeatingLevel;
 import simulation.entities.employee.EmployeeContext;
-import simulation.entities.employee.messages.BrewABeerCommand;
-import simulation.entities.employee.messages.CheckHeatingTemperatureCommand;
-import simulation.entities.employee.messages.CheckMashTemperatureCommand;
-import simulation.entities.employee.messages.ExecuteNextBrewingInstructionCommand;
+import simulation.entities.employee.messages.*;
+import systems.brewery.values.Bottling;
 import systems.brewery.values.Brew;
+import systems.brewery.values.Ingredient;
 import systems.brewery.values.event.*;
 import systems.brewery.values.instructions.*;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -60,7 +62,11 @@ public final class BrewingState implements State {
             ctx.getBrewery().finish();
             ctx.getBreweryManagementSystem().getBrews().updateBrew(Clock.getInstance().getNowAsInstant(), P.randomDouble(14.0, 1.2));
             ctx.log("Finished Brewing! Post!");
-
+            Clock
+                    .scheduler(ctx.getActor())
+                    .waitFor(P.randomDuration(Duration.ofMinutes(30)))
+                    .sendMessage((ack) -> BottlingBrewCommand.apply(ack, BottleSize.SMALL_03))
+                    .schedule();
             cmd.getAck().tell(Done.getInstance());
             return this;
         }
@@ -140,6 +146,52 @@ public final class BrewingState implements State {
 
         }
         return State.super.onCheckHeatingTemperatureCommand(cmd);
+    }
+
+    @Override
+    public State onBottlingBrewCommand(BottlingBrewCommand cmd){
+        Clock
+            .scheduler(ctx.getActor())
+            .run(now -> {
+
+                int bottles;
+                //ToDo: Anpassen dass quantity = Water added +- random number
+                var quantity = 1000;
+
+                switch(cmd.getBottleSize()){
+                    case SMALL_03:
+                        bottles = (int) (quantity/0.33);
+                        break;
+                    case MEDIUM_05:
+                        bottles = (int) (quantity/0.5);
+                        break;
+                    case LARGE_07:
+                        bottles = (int) (quantity/0.7);
+                        break;
+                    default:
+                        bottles = quantity;
+                }
+
+                var bottling = Bottling.apply(now, now.plus(P.randomDuration(Duration.ofDays(7*31), Duration.ofDays(2*31))),quantity,bottles);
+
+                ctx
+                    .getBreweryManagementSystem()
+                    .getBrews()
+                    .logBottling(bottling);
+
+            })
+            .waitFor(P.randomDuration(Duration.ofHours(2), Duration.ofMinutes(15)), "bottling takes some time")
+            .schedule();
+        ctx.log("Beer succesfully bottled.");
+        cmd.getAck().tell(Done.getInstance());
+
+        return this;
+    }
+
+    @Override
+    public State onPutBrewIntoStorageCommand(PutBrewIntoStorageCommand cmd) {
+        cmd.getAck().tell(Done.getInstance());
+        return this;
     }
 
     private void addIngredient(AddIngredient instruction) {
