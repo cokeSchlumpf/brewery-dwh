@@ -68,8 +68,25 @@ public final class Scheduler<T> {
         return this;
     }
 
+    public <R> Scheduler<T> sendMessage(ActorRef<R> recipient, BiFunction<Instant, ActorRef<Done>, R> messageFactory) {
+        this.actions.registerAction(moment -> Clock
+            .getInstance()
+            .startSingleTimer(
+                UUID.randomUUID().toString(),
+                Duration.ZERO,
+                ctx,
+                (ActorRef<Done> ref) -> messageFactory.apply(moment, ref),
+                recipient));
+
+        return this;
+    }
+
     public Scheduler<T> sendMessage(Function<ActorRef<Done>, T> messageFactory) {
         return sendMessage((dateTime, ref) -> messageFactory.apply(ref));
+    }
+
+    public <R> Scheduler<T> sendMessage(ActorRef<R> recipient, Function<ActorRef<Done>, R> messageFactory) {
+        return sendMessage(recipient, (dateTime, ref) -> messageFactory.apply(ref));
     }
 
     public void schedule() {
