@@ -132,13 +132,16 @@ public final class Clock {
         });
     }
 
-    public <T> void startSingleTimer(String key, Duration delay, ActorContext<T> ctx, Function<ActorRef<Done>, ?
-        extends T> msg) {
+    public <T> void startSingleTimer(String key, Duration delay, ActorContext<?> ctx, Function<ActorRef<Done>, ? extends T> msg, ActorRef<T> recipient) {
         startSingleTimer(
             key, delay,
             done -> AskPattern
-                .ask(ctx.getSelf(), msg::apply, Duration.ofSeconds(300), ctx.getSystem().scheduler())
+                .ask(recipient, msg::apply, Duration.ofSeconds(300), ctx.getSystem().scheduler())
                 .thenApply(done::complete));
+    }
+
+    public <T> void startSingleTimer(String key, Duration delay, ActorContext<T> ctx, Function<ActorRef<Done>, ? extends T> msg) {
+        startSingleTimer(key, delay, ctx, msg, ctx.getSelf());
     }
 
     public void startSingleTimer(String key, Duration delay, Runnable operation) {
