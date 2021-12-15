@@ -61,7 +61,7 @@ public final class Scheduler<T> {
         this.run((now, ack) -> AskPattern
             .ask(recipient, (ActorRef<Done> ref) -> messageFactory.apply(now, ref), Duration.ofMinutes(1),
                 ctx.getSystem()
-                .scheduler())
+                    .scheduler())
             .thenAccept(done -> {
                 ack.complete(done);
             }));
@@ -123,20 +123,23 @@ public final class Scheduler<T> {
         @Override
         public CompletionStage<Done> run(Instant time) {
             var result = Operators.allOf(actions
-                .stream()
-                .map(action -> {
-                    var ack = new CompletableFuture<Done>();
-                    action.accept(ClockMoment.apply(time, ack));
-                    return ack;
-                }));
+                    .stream()
+                    .map(action -> {
+                        var ack = new CompletableFuture<Done>();
+                        action.accept(ClockMoment.apply(time, ack));
+                        return ack;
+                    }))
+                .thenApply(list -> Done.getInstance());
 
-            result.thenRun(() -> {
+            result = result.thenCompose(done -> {
                 if (next != null) {
-                    next.run(time);
-                };
+                    return next.run(time);
+                } else {
+                    return CompletableFuture.completedFuture(done);
+                }
             });
 
-            return result.thenApply(ignore -> Done.getInstance());
+            return result;
         }
 
         @Override
@@ -195,7 +198,18 @@ public final class Scheduler<T> {
                         });
                 });
 
-            return CompletableFuture.completedFuture(Done.getInstance());
+
+            var result = CompletableFuture.completedFuture(Done.getInstance());
+
+            result = result.thenCompose(done -> {
+                if (next != null) {
+                    return next.run(time);
+                } else {
+                    return CompletableFuture.completedFuture(done);
+                }
+            });
+
+            return result;
         }
 
         @Override

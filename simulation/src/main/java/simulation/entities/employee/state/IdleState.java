@@ -25,32 +25,28 @@ public final class IdleState implements State {
 
     @Override
     public State onCheckBeerSupplyCommand(CheckBeerSupply cmd){
-
         var inventory = ctx.getSalesManagementSystem().getBeers().getBeerProducts();
         inventory.removeIf(product -> product.getInventory() <= 0);
 
         Clock
             .scheduler(ctx.getActor())
             .waitFor(P.randomDuration(Duration.ofMinutes(5)))
-            .run(()->{
-                ctx.log("Received Check Beer Supply Command");
-            })
+            .run(()-> ctx.log("Received Check Beer Supply Command"))
             .ask(cmd.getResponse(), ack -> CheckBeerSupplyResponse.apply(inventory,ack))
-            .schedule();
-        cmd.getAck().tell(Done.getInstance());
+            .scheduleAndAcknowledge(cmd.getAck());
 
         return this;
     }
 
     @Override
     public State onBeerOrderCommand(BeerOrderCommand cmd) {
-
         ctx.log("Received Beer order");
 
         if(cmd.getOrder() == null){
             cmd.getAck().tell(Done.getInstance());
             return this;
         }
+
         ctx.log("Order: " + cmd.getOrder().getItems().toString());
 
         Clock

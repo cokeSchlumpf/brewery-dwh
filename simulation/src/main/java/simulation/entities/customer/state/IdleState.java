@@ -30,7 +30,7 @@ public class IdleState implements State {
     @Override
     public State onAskBeerSupply(AskBeerSupply msg) {
         ctx.log("Asks Brewery for beer supply");
-        ctx.getEmployee().tell(CheckBeerSupply.apply(msg.getAck(),ctx.getActor().messageAdapter(CheckBeerSupplyResponse.class, AskBeerSupplyResponseReceived::apply)));
+        ctx.getEmployee().tell(CheckBeerSupply.apply(msg.getAck(), ctx.getActor().messageAdapter(CheckBeerSupplyResponse.class, AskBeerSupplyResponseReceived::apply)));
         return this;
     }
 
