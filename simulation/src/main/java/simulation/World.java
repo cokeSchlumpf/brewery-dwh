@@ -13,6 +13,7 @@ import simulation.entities.brewery.Brewery;
 import simulation.entities.customer.Customer;
 import simulation.entities.customer.messages.AskBeerSupply;
 import simulation.entities.customer.messages.CustomerMessage;
+import simulation.entities.customer.values.CustomerType;
 import simulation.entities.employee.Employee;
 import simulation.entities.employee.messages.BrewABeerCommand;
 import simulation.entities.employee.messages.CheckBeerSupply;
@@ -94,12 +95,12 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
             Clock
                 .getInstance()
                 .startSingleTimer("brew a beer", Duration.ofDays(1), done -> AskPattern
-                    .ask(ctx.getSelf(), HelloWorld::apply, Duration.ofSeconds(10), ctx.getSystem().scheduler())
+                    .ask(ctx.getSelf(), HelloCustomerWorld::apply, Duration.ofSeconds(10), ctx.getSystem().scheduler())
                     .thenApply(reply -> done.complete(reply.getValue()))
                 );
 
             var johnny = ctx.spawn(Employee.create(bms,sms, systems.reference.model.Employee.johnny(), brewery), "johnny");
-            var sam = ctx.spawn(Customer.create(johnny), "sam");
+            var sam = ctx.spawn(Customer.create(johnny, CustomerType.NORMAL), "sam");
             return new World(ctx, johnny, sam);
         });
     }

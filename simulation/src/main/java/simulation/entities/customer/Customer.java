@@ -7,10 +7,7 @@ import akka.actor.typed.javadsl.AskPattern;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import simulation.clock.Clock;
-import simulation.entities.customer.messages.AskBeerSupply;
-import simulation.entities.customer.messages.AskBeerSupplyResponseReceived;
-import simulation.entities.customer.messages.CustomerMessage;
-import simulation.entities.customer.messages.ReceiveBeer;
+import simulation.entities.customer.messages.*;
 import simulation.entities.customer.state.IdleState;
 import simulation.entities.customer.state.State;
 import simulation.entities.customer.values.CustomerType;
@@ -30,7 +27,7 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
         this.state = IdleState.apply(ctx);
     }
 
-    public static Behavior<CustomerMessage> create(ActorRef<EmployeeMessage> employee) {
+    public static Behavior<CustomerMessage> create(ActorRef<EmployeeMessage> employee, CustomerType customerType) {
         return Behaviors.setup(actor -> {
 
             /*Clock
@@ -40,7 +37,7 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
                         .thenApply(reply -> done.complete(reply))
                 );*/
 
-            // ToDo: Random favorite beers, basierend auf products
+            // ToDo: Random favorite beers, basierend auf allen products
             var favoriteBeers = Arrays.asList("New Year's Bar Beer", "Christmas Foo Beer");
             var ctx = CustomerContext.apply(actor, employee,favoriteBeers, CustomerType.NORMAL, "sam", null);
             return new Customer(ctx);
@@ -60,6 +57,10 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
                 })
                 .onMessage(ReceiveBeer.class, cmd -> {
                     this.state = state.onReceiveBeer(cmd);
+                    return Behaviors.same();
+                })
+                .onMessage(MakeBeerOrderCommand.class, cmd -> {
+                    this.state = state.onMakeBeerOrderCommand(cmd);
                     return Behaviors.same();
                 })
                 .build();

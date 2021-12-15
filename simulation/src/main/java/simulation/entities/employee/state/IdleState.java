@@ -9,17 +9,9 @@ import lombok.AllArgsConstructor;
 import simulation.clock.Clock;
 import simulation.entities.employee.EmployeeContext;
 import simulation.entities.employee.messages.*;
-import systems.brewery.Brews;
-import systems.brewery.values.Bottling;
-import systems.brewery.values.Brew;
-import systems.sales.values.Beer;
-import systems.sales.values.Product;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+
 
 @AllArgsConstructor(staticName = "apply")
 public final class IdleState implements State {

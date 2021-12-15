@@ -37,7 +37,7 @@ public class P {
     public static <T> List<T> nRandomItems(List<T> items, int n){
         Random rand = new Random();
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < Math.min(n, items.size()); i++) {
             int randomIndex = rand.nextInt(items.size());
             T randomElement = items.get(randomIndex);
             items.remove(randomIndex);

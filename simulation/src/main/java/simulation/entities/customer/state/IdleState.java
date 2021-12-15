@@ -8,6 +8,7 @@ import simulation.clock.Clock;
 import simulation.entities.customer.CustomerContext;
 import simulation.entities.customer.messages.AskBeerSupply;
 import simulation.entities.customer.messages.AskBeerSupplyResponseReceived;
+import simulation.entities.customer.messages.MakeBeerOrderCommand;
 import simulation.entities.customer.messages.ReceiveBeer;
 import simulation.entities.employee.messages.*;
 import systems.sales.values.Order;
@@ -76,6 +77,28 @@ public class IdleState implements State {
                 }
                 break;
 
+            case GOURMET:
+                // gourmet orders random but little number of beers
+                selected_products = P.nRandomItems(on_sale, P.randomInteger(5,3.0));
+                if(!selected_products.isEmpty()){
+                    for (Product product: selected_products
+                    ) {
+                        orderItems.add(OrderItem.apply(product,Math.min(P.randomInteger(6, 1.0),product.getInventory())));
+                    }
+                    order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, orderItems);
+                }
+
+            case PARTY_PLANNER:
+                // party planner orders a lot
+                selected_products = P.nRandomItems(on_sale, 2);
+                if(!selected_products.isEmpty()){
+                    for (Product product: selected_products
+                    ) {
+                        orderItems.add(OrderItem.apply(product,Math.min(P.randomInteger(50, 20.0),product.getInventory())));
+                    }
+                    order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, orderItems);
+                }
+
             default:
                 selected_products = P.nRandomItems(on_sale, P.randomInteger(5,3.0));
                 if(!selected_products.isEmpty()){
@@ -88,14 +111,24 @@ public class IdleState implements State {
                 break;
         }
 
+        //ToDo: Bug fixing Uhr
         /*Clock
             .scheduler(ctx.getActor())
             .waitFor(P.randomDuration(Duration.ofMinutes(20)))
             .ask(ctx.getEmployee(), ack -> BeerOrderCommand.apply(ack, order,ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)))
             .scheduleAndAcknowledge(msg.getResponse().getAck());
-        //.tell(Done.getInstance());*/
+        //msg.getResponse().getAck().tell(Done.getInstance());*/
 
         ctx.getEmployee().tell(BeerOrderCommand.apply(msg.getResponse().getAck(), order, ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)));
+
+        //Workaround?
+        /*Order finalOrder = order;
+        Clock
+            .scheduler(ctx.getActor())
+            .waitFor(P.randomDuration(Duration.ofMinutes(20)))
+            .ask((ack) -> MakeBeerOrderCommand.apply(ack, finalOrder))
+            .scheduleAndAcknowledge(msg.getResponse().getAck());
+        msg.getResponse().getAck().tell(Done.getInstance());*/
 
         return this;
     }
@@ -104,6 +137,14 @@ public class IdleState implements State {
     public State onReceiveBeer(ReceiveBeer msg) {
         ctx.log("Received beer!");
         msg.getResponse().getAck().tell(Done.getInstance());
+        return this;
+    }
+
+    @Override
+    public State onMakeBeerOrderCommand(MakeBeerOrderCommand msg) {
+        ctx.log("Checkpoint helper1");
+        ctx.getEmployee().tell(BeerOrderCommand.apply(msg.getAck(),msg.getOrder(),ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)));
+
         return this;
     }
 

@@ -4,5 +4,8 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor(staticName = "apply")
 public class Customer {
-    String id;
+    int id;
+    String email;
+    String firstname;
+    String name;
 }

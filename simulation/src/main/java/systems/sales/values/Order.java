@@ -36,7 +36,7 @@ public class Order {
     List<OrderItem> items;
 
     public static Order predefinedOrder(){
-        Customer customer = Customer.apply("test@email.com");
+        Customer customer = Customer.apply(1, "customer@brewery.com", "sam","jones");
         List<OrderItem> item = Lists.<OrderItem>newArrayList();
         item.add(OrderItem.predefinedOrderItem());
         return Order.apply(customer,Instant.now(), null, item);
