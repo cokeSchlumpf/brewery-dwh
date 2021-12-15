@@ -31,7 +31,7 @@ public class CustomerContext {
 
     String name;
 
-    // zukünftig noch Datenbankobjekt
+    systems.sales.values.Customer customer;
 
     public void log(String message, Object...args) {
         LOG.info(String.format("%s -- %s -- %s", Clock.getInstance().getNow(), this.name,String.format(message, args)));

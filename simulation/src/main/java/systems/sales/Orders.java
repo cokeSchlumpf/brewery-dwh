@@ -1,4 +1,4 @@
 package systems.sales;
 
-public class Orders {
+public interface Orders {
 }

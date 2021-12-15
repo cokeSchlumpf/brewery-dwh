@@ -35,9 +35,11 @@ public class Product {
 
     Integer inventory;
 
+    //ToDo: Inventory als Liste von Bottlings wegen mhb
+
     public static List<Product> predefinedFooBeer(){
         var fooBeers = Lists.<Product>newArrayList();
-        fooBeers.add(Product.apply("Small Foo Beer",0.7,0.33,12));
+        fooBeers.add(Product.apply("Small Foo Beer",0.7,0.33,0));
         fooBeers.add(Product.apply("Extra Large Foo Beer",1.5,0.75,20));
         fooBeers.add(Product.apply("Christmas Foo Beer",1.0,0.33,20));
         return fooBeers;
@@ -45,7 +47,7 @@ public class Product {
 
     public static List<Product> predefinedBarBeer(){
         var barBeers = Lists.<Product>newArrayList();
-        barBeers.add(Product.apply("Standard Bar Beer",2.0,0.5,12));
+        barBeers.add(Product.apply("Standard Bar Beer",2.0,0.5,0));
         barBeers.add(Product.apply("New Year's Bar Beer",1.5,0.33,20));
         return barBeers;
     }

@@ -7,6 +7,7 @@ import simulation.entities.brewery.Brewery;
 import systems.brewery.BreweryManagementSystem;
 import systems.reference.ReferenceDataManagement;
 import systems.reference.ports.ReferenceDataRepositoryJdbcImpl;
+import systems.sales.SalesManagementSystem;
 
 import java.time.Duration;
 
@@ -21,6 +22,8 @@ public final class Application {
         var bms = BreweryManagementSystem.apply(databaseConfig);
         var brewery = Brewery.apply();
 
+        var sms = SalesManagementSystem.apply(databaseConfig);
+
         /*
          * Prepare initial data
          */
@@ -33,7 +36,7 @@ public final class Application {
             System.out.println("---");
         });
 
-        var system = ActorSystem.create(World.create(refDataMgmt, bms, brewery), "world");
+        var system = ActorSystem.create(World.create(refDataMgmt, bms, brewery, sms), "world");
         var killSwitch = Clock.getInstance().run();
 
         Clock.getInstance().startSingleTimer("kill", Duration.ofDays(365), () -> {

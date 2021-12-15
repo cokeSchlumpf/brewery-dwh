@@ -1,6 +1,7 @@
 package simulation.entities.customer.state;
 
 import akka.Done;
+import com.google.common.collect.Lists;
 import common.P;
 import lombok.AllArgsConstructor;
 import simulation.clock.Clock;
@@ -8,11 +9,9 @@ import simulation.entities.customer.CustomerContext;
 import simulation.entities.customer.messages.AskBeerSupply;
 import simulation.entities.customer.messages.AskBeerSupplyResponseReceived;
 import simulation.entities.customer.messages.ReceiveBeer;
-import simulation.entities.employee.messages.BeerOrderCommand;
-import simulation.entities.employee.messages.CheckBeerSupply;
-import simulation.entities.employee.messages.CheckBeerSupplyResponse;
-import simulation.entities.employee.messages.SendBeerCommand;
+import simulation.entities.employee.messages.*;
 import systems.sales.values.Order;
+import systems.sales.values.OrderItem;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -35,17 +34,30 @@ public class IdleState implements State {
     @Override
     public State onAskBeerSupplyResponseReceived(AskBeerSupplyResponseReceived msg) {
 
-        ctx.log("Received response from brewery: ");
-
         var on_sale = msg.getResponse().getInventory();
 
         // Places an order (different customer types)
         switch(ctx.getCustomerType()){
             case NORMAL:
-                ctx.log("Normal order");
+
+                ctx.log("Received response from brewery: ");
+                ctx.log(on_sale.toString());
                 var item = P.randomItem(on_sale);
-                Order order = Order.predefinedOrder();
-                ctx.getEmployee().tell(BeerOrderCommand.apply(msg.getResponse().getAck(), order, ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)));
+                var orderItem = OrderItem.apply(item, (int) P.randomDouble(item.getInventory()/2, item.getInventory()*0.1));
+                List<OrderItem> items = Lists.<OrderItem>newArrayList();
+                items.add(orderItem);
+                Order order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, items);
+
+
+                /*Clock
+                    .scheduler(ctx.getActor())
+                    .waitFor(P.randomDuration(Duration.ofMinutes(20)))
+                    .sendMessage(ctx.getEmployee(), ack -> BeerOrderCommand.apply(ack, order,ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)))
+                    .schedule();
+
+                msg.getResponse().getAck().tell(Done.getInstance());*/
+                //ctx.getEmployee().tell(BeerOrderCommand.apply(msg.getResponse().getAck(), order, ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)));
+
                 break;
         }
         return this;

@@ -32,17 +32,16 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
 
     public static Behavior<CustomerMessage> create(ActorRef<EmployeeMessage> employee) {
         return Behaviors.setup(actor -> {
+
             /*Clock
                 .getInstance()
                 .startPeriodicTimer("Customer lifecycle", Duration.ofDays(7), done -> AskPattern
                         .ask(actor.getSelf(), AskBeerSupply::apply, Duration.ofMinutes(10), actor.getSystem().scheduler())
-                        .thenApply(reply -> done.complete(reply.getValue()))
-
-                );
-            */
+                        .thenApply(reply -> done.complete(reply))
+                );*/
 
             List<String> favoriteBeers = Arrays.asList("foo", "Helles", "Radler");
-            var ctx = CustomerContext.apply(actor, employee,favoriteBeers, CustomerType.NORMAL, "sam");
+            var ctx = CustomerContext.apply(actor, employee,favoriteBeers, CustomerType.NORMAL, "sam", null);
             return new Customer(ctx);
         });
     }

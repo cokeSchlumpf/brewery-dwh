@@ -10,6 +10,7 @@ import simulation.entities.employee.messages.*;
 import simulation.entities.employee.state.IdleState;
 import simulation.entities.employee.state.State;
 import systems.brewery.BreweryManagementSystem;
+import systems.sales.SalesManagementSystem;
 
 public final class Employee extends AbstractBehavior<EmployeeMessage> {
 
@@ -20,9 +21,9 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
         this.state = IdleState.apply(ctx);
     }
 
-    public static Behavior<EmployeeMessage> create(BreweryManagementSystem bms, systems.reference.model.Employee employee, Brewery brewery) {
+    public static Behavior<EmployeeMessage> create(BreweryManagementSystem bms, SalesManagementSystem sms, systems.reference.model.Employee employee, Brewery brewery) {
         return Behaviors.setup(actor -> {
-            var ctx = EmployeeContext.apply(actor, bms, brewery, employee);
+            var ctx = EmployeeContext.apply(actor, bms, sms,brewery, employee);
             return new Employee(ctx);
         });
     }

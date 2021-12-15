@@ -22,6 +22,8 @@ import systems.brewery.values.Ingredient;
 import systems.brewery.values.IngredientProduct;
 import systems.brewery.values.Recipe;
 import systems.reference.ReferenceDataManagement;
+import systems.sales.SalesManagementSystem;
+import systems.sales.values.Beer;
 
 import java.time.Duration;
 
@@ -60,7 +62,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
         this.sam = sam;
     }
 
-    public static Behavior<WorldMessage> create(ReferenceDataManagement refDataManagement, BreweryManagementSystem bms, Brewery brewery) {
+    public static Behavior<WorldMessage> create(ReferenceDataManagement refDataManagement, BreweryManagementSystem bms, Brewery brewery, SalesManagementSystem sms) {
         /*
          * Clear database.
          */
@@ -68,6 +70,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
         bms.getRecipes().clear();
         bms.getIngredientProducts().clear();
         bms.getIngredients().clear();
+        sms.getBeers().clear();
         LOG.info("Cleaned database.");
 
         /*
@@ -77,6 +80,10 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
         Ingredient.predefined().forEach(ingredient -> bms.getIngredients().insertIngredient(ingredient));
         IngredientProduct.predefined().forEach(product -> bms.getIngredientProducts().insertIngredientProduct(product));
         Recipe.predefined().forEach(recipe -> bms.getRecipes().insertRecipe(recipe));
+
+        sms.getBeers().insertBeer(Beer.barBeerpredefined());
+        sms.getBeers().insertBeer(Beer.fooBeerpredefined());
+
         LOG.info("Initial data inserted.");
 
         /*
@@ -90,7 +97,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
                     .thenApply(reply -> done.complete(reply.getValue()))
                 );
 
-            var johnny = ctx.spawn(Employee.create(bms, systems.reference.model.Employee.johnny(), brewery), "johnny");
+            var johnny = ctx.spawn(Employee.create(bms,sms, systems.reference.model.Employee.johnny(), brewery), "johnny");
             var sam = ctx.spawn(Customer.create(johnny), "sam");
             return new World(ctx, johnny, sam);
         });

@@ -1,6 +1,7 @@
 package simulation.entities.employee.state;
 
 import akka.Done;
+import com.google.common.collect.Lists;
 import common.P;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,6 +31,8 @@ public final class BrewingState implements State {
 
     private final List<Instruction> instructions;
 
+    private final String beer_key;
+
     public static BrewingState apply(EmployeeContext ctx, BrewABeerCommand cmd) {
         Clock
             .scheduler(ctx.getActor())
@@ -53,7 +56,7 @@ public final class BrewingState implements State {
         ctx.getBreweryManagementSystem().getBrews().insertBrew(brew);
         ctx.log("Start brewing beer `%s`", brew.getBeer().getBeerKey());
 
-        return apply(ctx, instructions);
+        return apply(ctx, instructions, recipe.getBeerKey());
     }
 
     @Override
@@ -150,39 +153,43 @@ public final class BrewingState implements State {
 
     @Override
     public State onBottlingBrewCommand(BottlingBrewCommand cmd){
+
+        int bottles;
+        //ToDo: Anpassen dass quantity = Water added +- random number
+        var quantity = 1000;
+
+        switch(cmd.getBottleSize()){
+            case SMALL_03:
+                bottles = (int) (quantity/0.33);
+                break;
+            case MEDIUM_05:
+                bottles = (int) (quantity/0.5);
+                break;
+            case LARGE_07:
+                bottles = (int) (quantity/0.7);
+                break;
+            default:
+                bottles = quantity;
+        }
+
+        List<Bottling> bottlings = Lists.<Bottling>newArrayList();
+        var bottling = Bottling.apply(Clock.getInstance().getNowAsInstant(), Clock.getInstance().getNowAsInstant().plus(P.randomDuration(Duration.ofDays(7*31), Duration.ofDays(2*31))),quantity,bottles);
+        bottlings.add(bottling);
+
         Clock
             .scheduler(ctx.getActor())
+            .waitFor(P.randomDuration(Duration.ofHours(2), Duration.ofMinutes(30)), "bottling takes some time")
             .run(now -> {
-
-                int bottles;
-                //ToDo: Anpassen dass quantity = Water added +- random number
-                var quantity = 1000;
-
-                switch(cmd.getBottleSize()){
-                    case SMALL_03:
-                        bottles = (int) (quantity/0.33);
-                        break;
-                    case MEDIUM_05:
-                        bottles = (int) (quantity/0.5);
-                        break;
-                    case LARGE_07:
-                        bottles = (int) (quantity/0.7);
-                        break;
-                    default:
-                        bottles = quantity;
-                }
-
-                var bottling = Bottling.apply(now, now.plus(P.randomDuration(Duration.ofDays(7*31), Duration.ofDays(2*31))),quantity,bottles);
-
-                ctx
-                    .getBreweryManagementSystem()
-                    .getBrews()
-                    .logBottling(bottling);
-
+                bottlings.forEach((bot) -> {
+                    ctx
+                        .getBreweryManagementSystem()
+                        .getBrews()
+                        .logBottling(bot);
+                });
+                ctx.log("Beer succesfully bottled.");
             })
-            .waitFor(P.randomDuration(Duration.ofHours(2), Duration.ofMinutes(15)), "bottling takes some time")
+            .sendMessage(ack -> PutBrewIntoStorageCommand.apply(bottlings, ack))
             .schedule();
-        ctx.log("Beer succesfully bottled.");
         cmd.getAck().tell(Done.getInstance());
 
         return this;
@@ -190,8 +197,17 @@ public final class BrewingState implements State {
 
     @Override
     public State onPutBrewIntoStorageCommand(PutBrewIntoStorageCommand cmd) {
+
+        ctx.log("Putting Bottlings Into Storage");
+
+        // Hardcoded:
+        Bottling b = cmd.getBottlings().get(0);
+
+       //ctx.getSalesManagementSystem().getBeers().updateBeerProduct();
+
+
         cmd.getAck().tell(Done.getInstance());
-        return this;
+        return IdleState.apply(ctx);
     }
 
     private void addIngredient(AddIngredient instruction) {

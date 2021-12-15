@@ -2,7 +2,9 @@ package simulation.entities.employee.state;
 
 import akka.Done;
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.javadsl.AskPattern;
 import com.google.common.collect.Lists;
+import common.P;
 import lombok.AllArgsConstructor;
 import simulation.clock.Clock;
 import simulation.entities.employee.EmployeeContext;
@@ -13,6 +15,7 @@ import systems.brewery.values.Brew;
 import systems.sales.values.Beer;
 import systems.sales.values.Product;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,16 +34,23 @@ public final class IdleState implements State {
     @Override
     public State onCheckBeerSupplyCommand(CheckBeerSupply cmd){
 
-        ctx.log("Received Check Beer Supply Command");
 
-        // get inventory
         List<List<Product>> inventory = Lists.<List<Product>>newArrayList();
         inventory.add(Beer.fooBeerpredefined().getProducts());
         inventory.add(Beer.barBeerpredefined().getProducts());
         List<Product> flattened_inventory = inventory.stream()
-                                                    .flatMap(List::stream)
-                                                    .collect(Collectors.toList());
-        cmd.getResponse().tell(CheckBeerSupplyResponse.apply(flattened_inventory,cmd.getAck()));
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        Clock
+            .scheduler(ctx.getActor())
+            .waitFor(P.randomDuration(Duration.ofMinutes(5)))
+            .run(()->{
+                ctx.log("Received Check Beer Supply Command");
+            })
+            .sendMessage(cmd.getResponse(), ack -> CheckBeerSupplyResponse.apply(flattened_inventory,ack))
+            .schedule();
+        cmd.getAck().tell(Done.getInstance());
 
         return this;
     }
@@ -49,8 +59,20 @@ public final class IdleState implements State {
     public State onBeerOrderCommand(BeerOrderCommand cmd) {
 
         ctx.log("Received Beer order");
+        ctx.log("Order: " + cmd.getOrder().getItems().toString());
         // Process order
-        cmd.getResponse().tell(SendBeerCommand.apply(cmd.getAck()));
+
+        Clock
+                .scheduler(ctx.getActor())
+                .waitFor(P.randomDuration(Duration.ofDays(2)))
+                .run(()->{
+                    ctx.log("process beer order and ship to customer");
+                })
+                .sendMessage(cmd.getResponse(), ack -> SendBeerCommand.apply(ack))
+                .schedule();
+
+        cmd.getAck().tell(Done.getInstance());
+
         return this;
     }
 

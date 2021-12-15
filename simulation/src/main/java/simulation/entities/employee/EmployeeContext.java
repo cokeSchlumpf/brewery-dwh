@@ -9,6 +9,7 @@ import simulation.clock.Clock;
 import simulation.entities.brewery.Brewery;
 import simulation.entities.employee.messages.EmployeeMessage;
 import systems.brewery.BreweryManagementSystem;
+import systems.sales.SalesManagementSystem;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
@@ -19,6 +20,8 @@ public class EmployeeContext {
     ActorContext<EmployeeMessage> actor;
 
     BreweryManagementSystem breweryManagementSystem;
+
+    SalesManagementSystem salesManagementSystem;
 
     Brewery brewery;
 
