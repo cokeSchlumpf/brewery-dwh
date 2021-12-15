@@ -40,7 +40,8 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
                         .thenApply(reply -> done.complete(reply))
                 );*/
 
-            List<String> favoriteBeers = Arrays.asList("foo", "Helles", "Radler");
+            // ToDo: Random favorite beers, basierend auf products
+            var favoriteBeers = Arrays.asList("New Year's Bar Beer", "Christmas Foo Beer");
             var ctx = CustomerContext.apply(actor, employee,favoriteBeers, CustomerType.NORMAL, "sam", null);
             return new Customer(ctx);
         });

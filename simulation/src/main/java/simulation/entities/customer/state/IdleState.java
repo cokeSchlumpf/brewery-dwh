@@ -12,11 +12,13 @@ import simulation.entities.customer.messages.ReceiveBeer;
 import simulation.entities.employee.messages.*;
 import systems.sales.values.Order;
 import systems.sales.values.OrderItem;
+import systems.sales.values.Product;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @AllArgsConstructor(staticName = "apply")
@@ -35,31 +37,66 @@ public class IdleState implements State {
     public State onAskBeerSupplyResponseReceived(AskBeerSupplyResponseReceived msg) {
 
         var on_sale = msg.getResponse().getInventory();
+        ctx.log("Received response from brewery: " + on_sale.toString());
 
-        // Places an order (different customer types)
+        List<Product> selected_products;
+        List<OrderItem> orderItems = Lists.<OrderItem>newArrayList();
+        Order order = null;
+
         switch(ctx.getCustomerType()){
             case NORMAL:
+                // normal customer only orders beer, if his favorite beer is on stock
+                selected_products = on_sale
+                                        .stream()
+                                        .filter(product -> ctx.getFavoriteBeers().contains(product.getProductName()))
+                                        .limit(3)
+                                        .collect(Collectors.toList());
+                if(!selected_products.isEmpty()){
+                    for (Product product: selected_products
+                    ) {
+                        orderItems.add(OrderItem.apply(product,Math.min(P.randomInteger(6, 5),product.getInventory())));
+                    }
+                    order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, orderItems);
+                }
+                break;
+                
+            case STUDENT:
+                // student orders a lot of cheap beer
+                selected_products = on_sale
+                        .stream()
+                        .filter(product -> (ctx.getFavoriteBeers().contains(product.getProductName()) && product.getPrice()<1.0) || product.getPrice()<0.7)
+                        .limit(3)
+                        .collect(Collectors.toList());
+                if(!selected_products.isEmpty()){
+                    for (Product product: selected_products
+                    ) {
+                        orderItems.add(OrderItem.apply(product,Math.min(P.randomInteger(18, 6.0),product.getInventory())));
+                    }
+                    order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, orderItems);
+                }
+                break;
 
-                ctx.log("Received response from brewery: ");
-                ctx.log(on_sale.toString());
-                var item = P.randomItem(on_sale);
-                var orderItem = OrderItem.apply(item, (int) P.randomDouble(item.getInventory()/2, item.getInventory()*0.1));
-                List<OrderItem> items = Lists.<OrderItem>newArrayList();
-                items.add(orderItem);
-                Order order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, items);
-
-
-                Clock
-                    .scheduler(ctx.getActor())
-                    .waitFor(P.randomDuration(Duration.ofMinutes(20)))
-                    .ask(ctx.getEmployee(), ack -> BeerOrderCommand.apply(ack, order,ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)))
-                    .scheduleAndAcknowledge(msg.getResponse().getAck());
-                //.tell(Done.getInstance());
-
-                //ctx.getEmployee().tell(BeerOrderCommand.apply(msg.getResponse().getAck(), order, ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)));
-
+            default:
+                selected_products = P.nRandomItems(on_sale, P.randomInteger(5,3.0));
+                if(!selected_products.isEmpty()){
+                    for (Product product: selected_products
+                    ) {
+                        orderItems.add(OrderItem.apply(product,Math.min(P.randomInteger(6, 5),product.getInventory())));
+                    }
+                    order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, orderItems);
+                }
                 break;
         }
+
+        /*Clock
+            .scheduler(ctx.getActor())
+            .waitFor(P.randomDuration(Duration.ofMinutes(20)))
+            .ask(ctx.getEmployee(), ack -> BeerOrderCommand.apply(ack, order,ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)))
+            .scheduleAndAcknowledge(msg.getResponse().getAck());
+        //.tell(Done.getInstance());*/
+
+        ctx.getEmployee().tell(BeerOrderCommand.apply(msg.getResponse().getAck(), order, ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)));
+
         return this;
     }
 

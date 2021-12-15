@@ -15,6 +15,7 @@ import systems.brewery.values.Brew;
 import systems.brewery.values.Ingredient;
 import systems.brewery.values.event.*;
 import systems.brewery.values.instructions.*;
+import systems.sales.values.Product;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -31,7 +32,6 @@ public final class BrewingState implements State {
 
     private final List<Instruction> instructions;
 
-    private final String beer_key;
 
     public static BrewingState apply(EmployeeContext ctx, BrewABeerCommand cmd) {
         Clock
@@ -55,7 +55,7 @@ public final class BrewingState implements State {
         ctx.getBreweryManagementSystem().getBrews().insertBrew(brew);
         ctx.log("Start brewing beer `%s`", brew.getBeer().getBeerKey());
 
-        return apply(ctx, instructions, recipe.getBeerKey());
+        return apply(ctx, instructions);
     }
 
     @Override
@@ -67,7 +67,7 @@ public final class BrewingState implements State {
             Clock
                     .scheduler(ctx.getActor())
                     .waitFor(P.randomDuration(Duration.ofMinutes(30)))
-                    .ask((ack) -> BottlingBrewCommand.apply(ack, BottleSize.SMALL_03))
+                    .ask((ack) -> BottlingBrewCommand.apply(ack, P.randomItem(List.of(BottleSize.values()))))
                     .schedule();
             cmd.getAck().tell(Done.getInstance());
             return this;
@@ -155,21 +155,19 @@ public final class BrewingState implements State {
         int bottles;
         //ToDo: Anpassen dass quantity = Water added +- random number
         var quantity = 1000;
-
         switch(cmd.getBottleSize()){
-            case SMALL_03:
+            case SMALL_033:
                 bottles = (int) (quantity/0.33);
                 break;
             case MEDIUM_05:
                 bottles = (int) (quantity/0.5);
                 break;
-            case LARGE_07:
-                bottles = (int) (quantity/0.7);
+            case LARGE_075:
+                bottles = (int) (quantity/0.75);
                 break;
             default:
                 bottles = quantity;
         }
-
         List<Bottling> bottlings = Lists.<Bottling>newArrayList();
         var bottling = Bottling.apply(Clock.getInstance().getNowAsInstant(), Clock.getInstance().getNowAsInstant().plus(P.randomDuration(Duration.ofDays(7*31), Duration.ofDays(2*31))),quantity,bottles);
         bottlings.add(bottling);
@@ -184,7 +182,6 @@ public final class BrewingState implements State {
                         .getBrews()
                         .logBottling(bot);
                 });
-                ctx.log("Beer succesfully bottled.");
             })
             .ask(ack -> PutBrewIntoStorageCommand.apply(bottlings, ack))
             .schedule();
@@ -196,14 +193,14 @@ public final class BrewingState implements State {
     @Override
     public State onPutBrewIntoStorageCommand(PutBrewIntoStorageCommand cmd) {
 
-        ctx.log("Putting Bottlings Into Storage");
+        ctx.log("Putting Bottlings Into Storage...");
 
-        // Hardcoded:
-        Bottling b = cmd.getBottlings().get(0);
+        // Hardcoded -> besser getBrews Methode, performance?
+        var new_bottles = cmd.getBottlings().get(0).getBottles();
+        var beer_name = Product.predefinedBarBeer().get(0).getProductName();
+        ctx.getSalesManagementSystem().getBeers().updateBeerProduct(beer_name, new_bottles);
 
-       //ctx.getSalesManagementSystem().getBeers().updateBeerProduct();
-
-
+        ctx.log("New bottles in storage system.");
         cmd.getAck().tell(Done.getInstance());
         return IdleState.apply(ctx);
     }

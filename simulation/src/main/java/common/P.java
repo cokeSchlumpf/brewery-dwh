@@ -21,10 +21,29 @@ public class P {
         return random.nextGaussian() * sd + avg;
     }
 
+    public static int randomInteger(int avg, int relativeSD){
+        var sd = avg/relativeSD;
+        return (int) random.nextGaussian()*sd+avg;
+    }
+
+    public static int randomInteger(int avg, double sd){
+        return (int) Math.min(((int) random.nextGaussian()*sd+avg), 0);
+    }
+
     public static <T> T randomItem(List<T> items) {
         return items.get(random.nextInt(items.size()));
     }
 
+    public static <T> List<T> nRandomItems(List<T> items, int n){
+        Random rand = new Random();
+
+        for (int i = 0; i < n; i++) {
+            int randomIndex = rand.nextInt(items.size());
+            T randomElement = items.get(randomIndex);
+            items.remove(randomIndex);
+        }
+        return items;
+    }
     public static Duration randomDuration(Duration avg, Duration sd) {
         var seconds = random.nextGaussian() * sd.getSeconds() + avg.getSeconds();
         return Duration.ofSeconds((long) seconds);

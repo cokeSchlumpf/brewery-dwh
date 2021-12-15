@@ -90,10 +90,11 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
          *
          */
         return Behaviors.setup(ctx -> {
+
             Clock
                 .getInstance()
                 .startSingleTimer("brew a beer", Duration.ofDays(1), done -> AskPattern
-                    .ask(ctx.getSelf(), HelloCustomerWorld::apply, Duration.ofSeconds(10), ctx.getSystem().scheduler())
+                    .ask(ctx.getSelf(), HelloWorld::apply, Duration.ofSeconds(10), ctx.getSystem().scheduler())
                     .thenApply(reply -> done.complete(reply.getValue()))
                 );
 

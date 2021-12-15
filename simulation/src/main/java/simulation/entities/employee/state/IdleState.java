@@ -34,13 +34,8 @@ public final class IdleState implements State {
     @Override
     public State onCheckBeerSupplyCommand(CheckBeerSupply cmd){
 
-
-        List<List<Product>> inventory = Lists.<List<Product>>newArrayList();
-        inventory.add(Beer.fooBeerpredefined().getProducts());
-        inventory.add(Beer.barBeerpredefined().getProducts());
-        List<Product> flattened_inventory = inventory.stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        var inventory = ctx.getSalesManagementSystem().getBeers().getBeerProducts();
+        inventory.removeIf(product -> product.getInventory() <= 0);
 
         Clock
             .scheduler(ctx.getActor())
@@ -48,7 +43,7 @@ public final class IdleState implements State {
             .run(()->{
                 ctx.log("Received Check Beer Supply Command");
             })
-            .ask(cmd.getResponse(), ack -> CheckBeerSupplyResponse.apply(flattened_inventory,ack))
+            .ask(cmd.getResponse(), ack -> CheckBeerSupplyResponse.apply(inventory,ack))
             .schedule();
         cmd.getAck().tell(Done.getInstance());
 
@@ -59,20 +54,29 @@ public final class IdleState implements State {
     public State onBeerOrderCommand(BeerOrderCommand cmd) {
 
         ctx.log("Received Beer order");
+
+        if(cmd.getOrder() == null){
+            cmd.getAck().tell(Done.getInstance());
+            return this;
+        }
         ctx.log("Order: " + cmd.getOrder().getItems().toString());
-        // Process order
 
         Clock
-                .scheduler(ctx.getActor())
-                .waitFor(P.randomDuration(Duration.ofDays(2)))
-                .run(()->{
-                    ctx.log("process beer order and ship to customer");
-                })
-                .ask(cmd.getResponse(), ack -> SendBeerCommand.apply(ack))
-                .schedule();
+            .scheduler(ctx.getActor())
+            .waitFor(P.randomDuration(Duration.ofDays(2)))
+            .run(()->{
+                ctx.log("process beer order and ship to customer");
+                cmd
+                    .getOrder()
+                    .getItems()
+                    .forEach(product -> {
+                        ctx.getSalesManagementSystem().getBeers().updateBeerProduct(product.getBeer().getProductName(), -1*product.getBottles());
+                    });
+            })
+            .ask(cmd.getResponse(), ack -> SendBeerCommand.apply(ack))
+            .schedule();
 
         cmd.getAck().tell(Done.getInstance());
-
         return this;
     }
 

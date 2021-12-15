@@ -6,6 +6,7 @@ import org.jdbi.v3.core.Jdbi;
 import systems.sales.values.Beer;
 import systems.sales.values.Product;
 
+import java.util.List;
 import java.util.Optional;
 
 @AllArgsConstructor(staticName = "apply")
@@ -28,7 +29,15 @@ public class BeersJdbcImpl implements Beers{
         }
     }
 
+    @Override
+    public int getBeerIdByName(String name) {
+        return 0;
+    }
 
+    @Override
+    public Optional<Beer> findBeerByName(String beer_name) {
+        return Optional.empty();
+    }
 
     public void insertBeerProduct(Beer beer,Product product) {
         var query = Templates.renderTemplateFromResources("db/sql.sales/products--insert.sql");
@@ -43,24 +52,6 @@ public class BeersJdbcImpl implements Beers{
                 );
     }
 
-
-    @Override
-    public int getBeerIdByName(String name) {
-        return 0;
-    }
-
-    @Override
-    public void updateBeerProduct(Product product) {
-        var existingId = getBeerProductIdByName(product.getProductName());
-
-        if (existingId.isEmpty()) {
-            throw new RuntimeException(String.format("Beer product does not exist"));
-        } else {
-            //var query = Templates.renderTemplateFromResources("db/sql/brewery/ingredients--update.sql");
-
-        }
-    }
-
     private Optional<Integer> getBeerProductIdByName(String product_name){
 
         var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-id-by-name.sql");
@@ -70,6 +61,54 @@ public class BeersJdbcImpl implements Beers{
                 .bind("product_name", product_name)
                 .mapTo(Integer.class)
                 .findOne());
+    }
+
+    public Optional<Product> findBeerProductByName(String product_name){
+
+        var existingId = getBeerProductIdByName(product_name);
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-by-id.sql");
+
+        var product = jdbi.withHandle(handle -> handle
+                                .createQuery(query)
+                                .bind("product_id", existingId)
+                                .map((rs,ctx) ->{
+                                    return Product.apply(rs.getString("product_name"),rs.getDouble("price"), rs.getDouble("volume"), rs.getInt("inventory"));
+                                })
+                                .findFirst());
+        return product;
+
+    }
+
+    @Override
+    public List<Product> getBeerProducts(){
+        var query =Templates.renderTemplateFromResources("db/sql.sales/products--select-all.sql");
+
+        var products = jdbi.withHandle(handle -> handle
+                .createQuery(query)
+                .map((rs,ctx) ->{
+                    return Product.apply(rs.getString("product_name"),rs.getDouble("price"), rs.getDouble("volume"), rs.getInt("inventory"));
+                })
+                .list());
+        return products;
+    }
+
+    @Override
+    public void updateBeerProduct(String product_name, int bottles) {
+        var existingId = getBeerProductIdByName(product_name);
+        if (existingId.isEmpty()) {
+            throw new RuntimeException(String.format("Beer product does not exist"));
+        } else {
+            var current_inventory = findBeerProductByName(product_name).get().getInventory();
+            var query = Templates.renderTemplateFromResources("db/sql.sales/products--update.sql");
+
+            jdbi.withHandle(handle -> handle
+                    .createUpdate(query)
+                    .bind("product_name", product_name)
+                    .bind("inventory", current_inventory + bottles)
+                    .bind("product_id", existingId)
+                    .execute());
+
+        }
     }
 
 
