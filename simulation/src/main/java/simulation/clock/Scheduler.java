@@ -4,24 +4,25 @@ package simulation.clock;
 import akka.Done;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.AskPattern;
 import com.google.common.collect.Lists;
+import common.Operators;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Value;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 @AllArgsConstructor(staticName = "apply")
 public final class Scheduler<T> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
 
     private final ActorContext<T> ctx;
 
@@ -40,64 +41,69 @@ public final class Scheduler<T> {
         return waitFor(delay, UUID.randomUUID().toString());
     }
 
-    public Scheduler<T> run(Consumer<Instant> op) {
-        this.actions.registerAction(now -> {
-            try {
-                op.accept(now);
-            } catch (Exception e) {
-                LOG.error("An exception occurred in scheduled runnable", e);
-            }
-        });
+    public Scheduler<T> run(BiConsumer<Instant, CompletableFuture<Done>> op) {
+        this.actions.registerAction(moment -> op.accept(moment.getNow(), moment.getAck()));
         return this;
+    }
+
+    public Scheduler<T> run(Consumer<Instant> op) {
+        return this.run((now, ack) -> {
+            op.accept(now);
+            ack.complete(Done.getInstance());
+        });
     }
 
     public Scheduler<T> run(Runnable op) {
-        this.actions.registerAction(dateTime -> op.run());
-        return this;
+        return this.run(now -> op.run());
     }
 
-    public Scheduler<T> sendMessage(BiFunction<Instant, ActorRef<Done>, T> messageFactory) {
-        this.actions.registerAction(moment -> Clock
-            .getInstance()
-            .startSingleTimer(
-                UUID.randomUUID().toString(),
-                Duration.ZERO,
-                ctx,
-                (ActorRef<Done> ref) -> messageFactory.apply(moment, ref)));
-
-        return this;
-    }
-
-    public <R> Scheduler<T> sendMessage(ActorRef<R> recipient, BiFunction<Instant, ActorRef<Done>, R> messageFactory) {
-        this.actions.registerAction(moment -> Clock
-            .getInstance()
-            .startSingleTimer(
-                UUID.randomUUID().toString(),
-                Duration.ZERO,
-                ctx,
-                (ActorRef<Done> ref) -> messageFactory.apply(moment, ref),
-                recipient));
+    public <R> Scheduler<T> ask(ActorRef<R> recipient, BiFunction<Instant, ActorRef<Done>, R> messageFactory) {
+        this.run((now, ack) -> AskPattern
+            .ask(recipient, (ActorRef<Done> ref) -> messageFactory.apply(now, ref), Duration.ofMinutes(1),
+                ctx.getSystem()
+                .scheduler())
+            .thenAccept(done -> {
+                ack.complete(done);
+            }));
 
         return this;
     }
 
-    public Scheduler<T> sendMessage(Function<ActorRef<Done>, T> messageFactory) {
-        return sendMessage((dateTime, ref) -> messageFactory.apply(ref));
+    public Scheduler<T> ask(BiFunction<Instant, ActorRef<Done>, T> messageFactory) {
+        return this.ask(ctx.getSelf(), messageFactory);
     }
 
-    public <R> Scheduler<T> sendMessage(ActorRef<R> recipient, Function<ActorRef<Done>, R> messageFactory) {
-        return sendMessage(recipient, (dateTime, ref) -> messageFactory.apply(ref));
+    public Scheduler<T> ask(Function<ActorRef<Done>, T> messageFactory) {
+        return ask((dateTime, ref) -> messageFactory.apply(ref));
     }
 
-    public void schedule() {
-        this.actions.init(Clock.getInstance().getNowAsInstant());
+    public <R> Scheduler<T> ask(ActorRef<R> recipient, Function<ActorRef<Done>, R> messageFactory) {
+        return ask(recipient, (dateTime, ref) -> messageFactory.apply(ref));
+    }
+
+    public void scheduleAndAcknowledge(ActorRef<Done> ack) {
+        schedule().thenAccept(ack::tell);
+    }
+
+    public CompletionStage<Done> schedule() {
+        return this.actions.run(Clock.getInstance().getNowAsInstant());
+    }
+
+    @Value
+    @AllArgsConstructor(staticName = "apply")
+    public static class ClockMoment {
+
+        Instant now;
+
+        CompletableFuture<Done> ack;
+
     }
 
     private interface ActionBlock {
 
-        void init(Instant time);
+        CompletionStage<Done> run(Instant time);
 
-        void registerAction(Consumer<Instant> action);
+        void registerAction(Consumer<ClockMoment> action);
 
         void withNext(ActionBlock actions);
 
@@ -106,7 +112,7 @@ public final class Scheduler<T> {
     @AllArgsConstructor(staticName = "apply")
     private static class InitialActions implements ActionBlock {
 
-        private final List<Consumer<Instant>> actions;
+        private final List<Consumer<ClockMoment>> actions;
 
         private ActionBlock next;
 
@@ -115,16 +121,26 @@ public final class Scheduler<T> {
         }
 
         @Override
-        public void init(Instant time) {
-            actions.forEach(c -> c.accept(time));
+        public CompletionStage<Done> run(Instant time) {
+            var result = Operators.allOf(actions
+                .stream()
+                .map(action -> {
+                    var ack = new CompletableFuture<Done>();
+                    action.accept(ClockMoment.apply(time, ack));
+                    return ack;
+                }));
 
-            if (next != null) {
-                next.init(time);
-            }
+            result.thenRun(() -> {
+                if (next != null) {
+                    next.run(time);
+                };
+            });
+
+            return result.thenApply(ignore -> Done.getInstance());
         }
 
         @Override
-        public void registerAction(Consumer<Instant> action) {
+        public void registerAction(Consumer<ClockMoment> action) {
             if (next != null) {
                 next.registerAction(action);
             } else {
@@ -146,7 +162,7 @@ public final class Scheduler<T> {
 
         private final String key;
 
-        private final List<Consumer<Instant>> actions;
+        private final List<Consumer<ClockMoment>> actions;
 
         private ActionBlock next;
 
@@ -155,21 +171,35 @@ public final class Scheduler<T> {
         }
 
         @Override
-        public void init(Instant time) {
+        public CompletionStage<Done> run(Instant time) {
             Clock
                 .getInstance()
-                .waitFor(key, delay)
-                .thenAccept(now -> {
-                    actions.forEach(c -> c.accept(now.toInstant(ZoneOffset.UTC)));
+                .startSingleTimer(key, delay, () -> {
+                    var now = Clock.getInstance().getNowAsInstant();
 
-                    if (next != null) {
-                        next.init(now.toInstant(ZoneOffset.UTC));
-                    }
+                    return Operators
+                        .allOf(actions
+                            .stream()
+                            .map(action -> {
+                                var ack = new CompletableFuture<Done>();
+                                var moment = ClockMoment.apply(now, ack);
+                                action.accept(moment);
+                                return ack;
+                            }))
+                        .thenApply(ignore -> {
+                            if (next != null) {
+                                next.run(now);
+                            }
+
+                            return Done.getInstance();
+                        });
                 });
+
+            return CompletableFuture.completedFuture(Done.getInstance());
         }
 
         @Override
-        public void registerAction(Consumer<Instant> action) {
+        public void registerAction(Consumer<ClockMoment> action) {
             if (next != null) {
                 next.registerAction(action);
             } else {

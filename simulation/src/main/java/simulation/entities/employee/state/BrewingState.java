@@ -38,8 +38,8 @@ public final class BrewingState implements State {
             .scheduler(ctx.getActor())
             .run(() -> ctx.getBrewery().prepareBrew())
             .waitFor(P.randomDuration(Duration.ofMinutes(1)))
-            .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
-            .schedule();
+            .ask(ExecuteNextBrewingInstructionCommand::apply)
+            .scheduleAndAcknowledge(cmd.getAck());
 
 
         var recipe = ctx
@@ -52,7 +52,6 @@ public final class BrewingState implements State {
         var brew = Brew.apply(
             recipe, ctx.getEmployee(), Clock.getInstance().getNowAsInstant(), P.randomDouble(8.0, 1.2));
 
-        cmd.getAck().tell(Done.getInstance());
         ctx.getBreweryManagementSystem().getBrews().insertBrew(brew);
         ctx.log("Start brewing beer `%s`", brew.getBeer().getBeerKey());
 
@@ -114,8 +113,8 @@ public final class BrewingState implements State {
                         "Mashed beer for %s minutes to temperature %s",
                         ChronoUnit.MINUTES.between(cmd.getStarted(), now), currentTemperature);
                 })
-                .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
-                .schedule();
+                .ask(ExecuteNextBrewingInstructionCommand::apply)
+                .scheduleAndAcknowledge(cmd.getAck());
         } else {
             var checkAgainAfter = P.randomDuration(cmd.getRemainingDuration(), Duration.ofMinutes(5));
             var remainingMashingDuration = checkAgainAfter.minus(checkAgainAfter);
@@ -133,11 +132,10 @@ public final class BrewingState implements State {
                     }
                 })
                 .waitFor(checkAgainAfter)
-                .sendMessage(ref -> cmd.withRemainingDuration(remainingMashingDurationFinal))
-                .schedule();
+                .ask(ref -> cmd.withRemainingDuration(remainingMashingDurationFinal))
+                .scheduleAndAcknowledge(cmd.getAck());
         }
 
-        cmd.getAck().tell(Done.getInstance());
         return this;
     }
 
@@ -236,7 +234,7 @@ public final class BrewingState implements State {
                     instruction.getIngredient().getUnit());
             })
             .waitFor(P.randomDuration(Duration.ofMinutes(2)), "adding ingredient takes some time")
-            .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
+            .ask(ExecuteNextBrewingInstructionCommand::apply)
             .schedule();
     }
 
@@ -252,7 +250,7 @@ public final class BrewingState implements State {
                 ctx.getBreweryManagementSystem().getBrews().logBrewEvent(Boiled.apply(started, now));
                 ctx.log("Boiled beer for %s minutes", instruction.getDuration().toMinutes());
             })
-            .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
+            .ask(ExecuteNextBrewingInstructionCommand::apply)
             .schedule();
     }
 
@@ -280,7 +278,7 @@ public final class BrewingState implements State {
                     ctx.log("Started mashing and set brewery heating level to %s", level);
                 })
                 .waitFor(checkAgainAfter)
-                .sendMessage((now, ack) -> CheckMashTemperatureCommand.apply(
+                .ask((now, ack) -> CheckMashTemperatureCommand.apply(
                     now, currentTemperature, instruction.getEndTemperature(), remainingMashingDuration, ack))
                 .schedule();
         } else {
@@ -295,7 +293,7 @@ public final class BrewingState implements State {
                     ctx.log("Set brewery heating level to %s to warm beer to mashing temperature.", level);
                 })
                 .waitFor(P.randomDuration(Duration.ofMinutes(2)))
-                .sendMessage((now, ack) -> CheckHeatingTemperatureCommand.apply(instruction, now, ack))
+                .ask((now, ack) -> CheckHeatingTemperatureCommand.apply(instruction, now, ack))
                 .schedule();
         }
     }
@@ -308,7 +306,7 @@ public final class BrewingState implements State {
             .scheduler(ctx.getActor())
             .run(() -> ctx.getBrewery().setHeating(HeatingLevel.L00_OFF))
             .waitFor(duration)
-            .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
+            .ask(ExecuteNextBrewingInstructionCommand::apply)
             .run(now -> {
                 ctx.getBreweryManagementSystem().getBrews().logBrewEvent(Rested.apply(started, now));
                 ctx.log("Rested beer for %s", duration);
@@ -329,7 +327,7 @@ public final class BrewingState implements State {
                 ctx.getBreweryManagementSystem().getBrews().logBrewEvent(Sparged.apply(started, now));
                 ctx.log("Sparged beer for %s", duration);
             })
-            .sendMessage(ExecuteNextBrewingInstructionCommand::apply)
+            .ask(ExecuteNextBrewingInstructionCommand::apply)
             .schedule();
     }
 
