@@ -1,9 +1,7 @@
 package simulation.clock;
 
 import akka.Done;
-import akka.actor.typed.ActorRef;
 import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.AskPattern;
 import akka.japi.Creator;
 import common.Operators;
 import lombok.AllArgsConstructor;
@@ -21,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor(staticName = "apply")
@@ -126,35 +123,17 @@ public final class Clock {
 
     public void startSingleTimer(String key, Duration delay, Consumer<CompletableFuture<Done>> operation) {
         startSingleTimer(key, delay, () -> {
-            var done = new CompletableFuture<Done>();
-            operation.accept(done);
-            return done;
+            var cs = new CompletableFuture<Done>();
+            operation.accept(cs);
+            return cs;
         });
-    }
-
-    public <T> void startSingleTimer(String key, Duration delay, ActorContext<?> ctx, Function<ActorRef<Done>, ? extends T> msg, ActorRef<T> recipient) {
-        startSingleTimer(
-            key, delay,
-            done -> AskPattern
-                .ask(recipient, msg::apply, Duration.ofSeconds(300), ctx.getSystem().scheduler())
-                .thenApply(done::complete));
-    }
-
-    public <T> void startSingleTimer(String key, Duration delay, ActorContext<T> ctx, Function<ActorRef<Done>, ? extends T> msg) {
-        startSingleTimer(key, delay, ctx, msg, ctx.getSelf());
     }
 
     public void startSingleTimer(String key, Duration delay, Runnable operation) {
-        startSingleTimer(key, delay, done -> {
+        startSingleTimer(key, delay, ack -> {
             operation.run();
-            done.complete(Done.getInstance());
+            ack.complete(Done.getInstance());
         });
-    }
-
-    public CompletionStage<LocalDateTime> waitFor(String key, Duration delay) {
-        var moment = new CompletableFuture<LocalDateTime>();
-        startSingleTimer(key, delay, () -> moment.complete(now));
-        return moment;
     }
 
     public void startPeriodicTimer(String key, Duration interval, Creator<CompletionStage<Done>> operation) {
