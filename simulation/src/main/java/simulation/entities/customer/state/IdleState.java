@@ -49,13 +49,13 @@ public class IdleState implements State {
                 Order order = Order.apply(ctx.getCustomer(), Clock.getInstance().getNowAsInstant(), null, items);
 
 
-                /*Clock
+                Clock
                     .scheduler(ctx.getActor())
                     .waitFor(P.randomDuration(Duration.ofMinutes(20)))
-                    .sendMessage(ctx.getEmployee(), ack -> BeerOrderCommand.apply(ack, order,ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)))
-                    .schedule();
+                    .ask(ctx.getEmployee(), ack -> BeerOrderCommand.apply(ack, order,ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)))
+                    .scheduleAndAcknowledge(msg.getResponse().getAck());
+                //.tell(Done.getInstance());
 
-                msg.getResponse().getAck().tell(Done.getInstance());*/
                 //ctx.getEmployee().tell(BeerOrderCommand.apply(msg.getResponse().getAck(), order, ctx.getActor().messageAdapter(SendBeerCommand.class, ReceiveBeer::apply)));
 
                 break;

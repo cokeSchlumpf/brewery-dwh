@@ -48,7 +48,7 @@ public final class IdleState implements State {
             .run(()->{
                 ctx.log("Received Check Beer Supply Command");
             })
-            .sendMessage(cmd.getResponse(), ack -> CheckBeerSupplyResponse.apply(flattened_inventory,ack))
+            .ask(cmd.getResponse(), ack -> CheckBeerSupplyResponse.apply(flattened_inventory,ack))
             .schedule();
         cmd.getAck().tell(Done.getInstance());
 
@@ -68,7 +68,7 @@ public final class IdleState implements State {
                 .run(()->{
                     ctx.log("process beer order and ship to customer");
                 })
-                .sendMessage(cmd.getResponse(), ack -> SendBeerCommand.apply(ack))
+                .ask(cmd.getResponse(), ack -> SendBeerCommand.apply(ack))
                 .schedule();
 
         cmd.getAck().tell(Done.getInstance());

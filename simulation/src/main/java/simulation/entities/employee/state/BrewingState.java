@@ -67,7 +67,7 @@ public final class BrewingState implements State {
             Clock
                     .scheduler(ctx.getActor())
                     .waitFor(P.randomDuration(Duration.ofMinutes(30)))
-                    .sendMessage((ack) -> BottlingBrewCommand.apply(ack, BottleSize.SMALL_03))
+                    .ask((ack) -> BottlingBrewCommand.apply(ack, BottleSize.SMALL_03))
                     .schedule();
             cmd.getAck().tell(Done.getInstance());
             return this;
@@ -186,7 +186,7 @@ public final class BrewingState implements State {
                 });
                 ctx.log("Beer succesfully bottled.");
             })
-            .sendMessage(ack -> PutBrewIntoStorageCommand.apply(bottlings, ack))
+            .ask(ack -> PutBrewIntoStorageCommand.apply(bottlings, ack))
             .schedule();
         cmd.getAck().tell(Done.getInstance());
 
