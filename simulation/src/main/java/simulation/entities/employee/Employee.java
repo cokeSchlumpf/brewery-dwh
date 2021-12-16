@@ -47,6 +47,10 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
                 this.state = state.onCheckHeatingTemperatureCommand(cmd);
                 return Behaviors.same();
             })
+            .onMessage(BottlingBrewCommand.class, cmd -> {
+                this.state = state.onBottlingBrewCommand(cmd);
+                return Behaviors.same();
+            })
             .onMessage(CheckBeerSupply.class, cmd -> {
                 this.state = state.onCheckBeerSupplyCommand(cmd);
                 return Behaviors.same();
@@ -55,12 +59,8 @@ public final class Employee extends AbstractBehavior<EmployeeMessage> {
                 this.state = state.onBeerOrderCommand(cmd);
                 return Behaviors.same();
             })
-            .onMessage(BottlingBrewCommand.class, cmd -> {
-                this.state = state.onBottlingBrewCommand(cmd);
-                return Behaviors.same();
-            })
-            .onMessage(PutBrewIntoStorageCommand.class, cmd -> {
-                this.state = state.onPutBrewIntoStorageCommand(cmd);
+            .onMessage(PrepareOrderToShipCommand.class, cmd -> {
+                this.state = state.onPrepareOrderToShipCommand(cmd);
                 return Behaviors.same();
             })
             .build();

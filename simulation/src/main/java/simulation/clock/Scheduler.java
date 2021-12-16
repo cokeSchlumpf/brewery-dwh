@@ -58,13 +58,17 @@ public final class Scheduler<T> {
     }
 
     public <R> Scheduler<T> ask(ActorRef<R> recipient, BiFunction<Instant, ActorRef<Done>, R> messageFactory) {
-        this.run((now, ack) -> AskPattern
-            .ask(recipient, (ActorRef<Done> ref) -> messageFactory.apply(now, ref), Duration.ofMinutes(1),
+        this.run((now, ack) -> {
+                var a = AskPattern
+            .ask(recipient, (ActorRef<Done> ref) -> {
+                var b = messageFactory.apply(now, ref);
+                return b;
+                }, Duration.ofMinutes(1),
                 ctx.getSystem()
-                    .scheduler())
-            .thenAccept(done -> {
-                ack.complete(done);
-            }));
+                    .scheduler());
+                a.thenAccept(done -> {
+                ack.complete(done);});
+        });
 
         return this;
     }

@@ -1,9 +1,6 @@
 package simulation.entities.customer.state;
 
-import simulation.entities.customer.messages.AskBeerSupply;
-import simulation.entities.customer.messages.AskBeerSupplyResponseReceived;
-import simulation.entities.customer.messages.MakeBeerOrderCommand;
-import simulation.entities.customer.messages.ReceiveBeer;
+import simulation.entities.customer.messages.*;
 
 public interface State {
 
@@ -14,5 +11,9 @@ public interface State {
     State onReceiveBeer(ReceiveBeer msg);
 
     State onMakeBeerOrderCommand(MakeBeerOrderCommand msg);
+
+    State onAskBeerSupplyOnlineResponseReceived(AskBeerSupplyOnlineResponseReceived msg);
+
+    State onReceiveBeerFromOnlineStore(ReceiveBeerFromOnlineStore msg);
 
 }

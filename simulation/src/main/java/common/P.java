@@ -27,7 +27,7 @@ public class P {
     }
 
     public static int randomInteger(int avg, double sd){
-        return (int) Math.min(((int) random.nextGaussian()*sd+avg), 0);
+        return (int) Math.max(((int) random.nextGaussian()*sd+avg), 0);
     }
 
     public static <T> T randomItem(List<T> items) {

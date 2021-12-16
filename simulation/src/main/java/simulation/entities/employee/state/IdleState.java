@@ -7,8 +7,10 @@ import com.google.common.collect.Lists;
 import common.P;
 import lombok.AllArgsConstructor;
 import simulation.clock.Clock;
+import simulation.entities.customer.messages.ReceiveBeerFromOnlineStore;
 import simulation.entities.employee.EmployeeContext;
 import simulation.entities.employee.messages.*;
+import systems.sales.values.Product;
 
 import java.time.Duration;
 
@@ -25,8 +27,10 @@ public final class IdleState implements State {
 
     @Override
     public State onCheckBeerSupplyCommand(CheckBeerSupply cmd){
-        var inventory = ctx.getSalesManagementSystem().getBeers().getBeerProducts();
-        inventory.removeIf(product -> product.getInventory() <= 0);
+        //var inventory = ctx.getSalesManagementSystem().getBeers().getBeerProducts();
+        //inventory.removeIf(product -> product.getInventory() <= 0);
+
+        var inventory = Product.predefinedBarBeer();
 
         Clock
             .scheduler(ctx.getActor())
@@ -58,13 +62,42 @@ public final class IdleState implements State {
                     .getOrder()
                     .getItems()
                     .forEach(product -> {
-                        ctx.getSalesManagementSystem().getBeers().updateBeerProduct(product.getBeer().getProductName(), -1*product.getBottles());
+                        ctx.getSalesManagementSystem().getBeers().updateBottling(product.getBeer().getProductName(), product.getBottles());
                     });
             })
             .ask(cmd.getResponse(), ack -> SendBeerCommand.apply(ack))
             .schedule();
 
         cmd.getAck().tell(Done.getInstance());
+        return this;
+    }
+
+    @Override
+    public State onPrepareOrderToShipCommand(PrepareOrderToShipCommand cmd){
+        ctx.log("Prepare order for shippment");
+
+        if(cmd.getOrder() == null){
+            cmd.getAck().tell(Done.getInstance());
+            return this;
+        }
+
+        ctx.log("Shipment Order: " + cmd.getOrder().getItems().toString());
+
+        Clock
+                .scheduler(ctx.getActor())
+                .waitFor(P.randomDuration(Duration.ofDays(4)))
+                .run(()->{
+                    cmd
+                        .getOrder()
+                        .getItems()
+                        .forEach(product -> {
+                            ctx.getSalesManagementSystem().getBeers().updateBottling(product.getBeer().getProductName(), product.getBottles());
+                            });
+                })
+                .ask(cmd.getRecipient(), ack -> ReceiveBeerFromOnlineStore.apply(ack))
+                .schedule();
+        cmd.getAck().tell(Done.getInstance());
+
         return this;
     }
 

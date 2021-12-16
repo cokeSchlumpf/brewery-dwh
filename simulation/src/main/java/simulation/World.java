@@ -18,6 +18,7 @@ import simulation.entities.employee.Employee;
 import simulation.entities.employee.messages.BrewABeerCommand;
 import simulation.entities.employee.messages.CheckBeerSupply;
 import simulation.entities.employee.messages.EmployeeMessage;
+import simulation.entities.onlinestore.OnlineStore;
 import systems.brewery.BreweryManagementSystem;
 import systems.brewery.values.Ingredient;
 import systems.brewery.values.IngredientProduct;
@@ -100,7 +101,9 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
                 );
 
             var johnny = ctx.spawn(Employee.create(bms,sms, systems.reference.model.Employee.johnny(), brewery), "johnny");
-            var sam = ctx.spawn(Customer.create(johnny, CustomerType.NORMAL), "sam");
+
+            var onlinestore = ctx.spawn(OnlineStore.create(sms,johnny), "brewery.com");
+            var sam = ctx.spawn(Customer.create(johnny, onlinestore,CustomerType.NORMAL), "sam");
             return new World(ctx, johnny, sam);
         });
     }

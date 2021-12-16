@@ -2,6 +2,7 @@ package systems.sales;
 
 import systems.brewery.values.Ingredient;
 import systems.sales.values.Beer;
+import systems.sales.values.Bottling;
 import systems.sales.values.Product;
 
 import java.util.List;
@@ -13,27 +14,25 @@ public interface Beers {
      */
     void insertBeer(Beer beer);
 
+    void insertBeerProduct(String beer_id,Product product);
+
+    void logBottling(String product_name, Bottling bottling);
+
     /*
      * read
      */
+    List<Product> readBeerProductsByBeerId(String beer_id);
 
-    int getBeerIdByName(String name);
-
-    Optional<Beer> findBeerByName(String beer_name);
-
-    List<Product> getBeerProducts();
+    List<Product> readBeerProducts();
 
     /*
      * update
      */
-    void updateBeerProduct(String productname, int bottles);
+    void updateBottling(String productname, int bottles);
 
     /*
      * delete
      */
-    void removeBeer(String beer);
-
-    void removeProduct(String product);
 
     void clear();
 

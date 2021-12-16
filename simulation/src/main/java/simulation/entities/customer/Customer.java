@@ -12,6 +12,8 @@ import simulation.entities.customer.state.IdleState;
 import simulation.entities.customer.state.State;
 import simulation.entities.customer.values.CustomerType;
 import simulation.entities.employee.messages.*;
+import simulation.entities.onlinestore.OnlineStore;
+import simulation.entities.onlinestore.messages.OnlineStoreMessage;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -27,7 +29,7 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
         this.state = IdleState.apply(ctx);
     }
 
-    public static Behavior<CustomerMessage> create(ActorRef<EmployeeMessage> employee, CustomerType customerType) {
+    public static Behavior<CustomerMessage> create(ActorRef<EmployeeMessage> employee, ActorRef<OnlineStoreMessage> onlinestore, CustomerType customerType) {
         return Behaviors.setup(actor -> {
 
             /*Clock
@@ -39,7 +41,7 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
 
             // ToDo: Random favorite beers, basierend auf allen products
             var favoriteBeers = Arrays.asList("New Year's Bar Beer", "Christmas Foo Beer");
-            var ctx = CustomerContext.apply(actor, employee,favoriteBeers, CustomerType.NORMAL, "sam", null);
+            var ctx = CustomerContext.apply(actor, employee,onlinestore,favoriteBeers, CustomerType.NORMAL, "sam", null);
             return new Customer(ctx);
         });
     }
@@ -61,6 +63,14 @@ public class Customer extends AbstractBehavior<CustomerMessage> {
                 })
                 .onMessage(MakeBeerOrderCommand.class, cmd -> {
                     this.state = state.onMakeBeerOrderCommand(cmd);
+                    return Behaviors.same();
+                })
+                .onMessage(AskBeerSupplyOnlineResponseReceived.class, cmd -> {
+                    this.state = state.onAskBeerSupplyOnlineResponseReceived(cmd);
+                    return Behaviors.same();
+                })
+                .onMessage(ReceiveBeerFromOnlineStore.class, cmd -> {
+                    this.state = state.onReceiveBeerFromOnlineStore(cmd);
                     return Behaviors.same();
                 })
                 .build();

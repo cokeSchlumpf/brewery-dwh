@@ -30,26 +30,29 @@ public class Product {
     Double volume;
 
     /**
-     * Number of units that are in stock.
+     * All bottlings for this beer product
      */
 
-    Integer inventory;
-
-    //ToDo: Inventory als Liste von Bottlings wegen mhb
+    List<Bottling> bottlings;
 
     public static List<Product> predefinedFooBeer(){
         var fooBeers = Lists.<Product>newArrayList();
-        fooBeers.add(Product.apply("Small Foo Beer",0.7,0.33,0));
-        fooBeers.add(Product.apply("Extra Large Foo Beer",1.5,0.75,20));
-        fooBeers.add(Product.apply("Christmas Foo Beer",1.0,0.33,20));
+        fooBeers.add(Product.apply("Small Foo Beer",0.7,0.33,Bottling.predefinedBottlings()));
+        fooBeers.add(Product.apply("Extra Large Foo Beer",1.5,0.75,Bottling.predefinedBottlings()));
+        fooBeers.add(Product.apply("Christmas Foo Beer",1.0,0.33,Bottling.predefinedBottlings()));
         return fooBeers;
     }
 
     public static List<Product> predefinedBarBeer(){
         var barBeers = Lists.<Product>newArrayList();
-        barBeers.add(Product.apply("Standard Bar Beer",2.0,0.5,0));
-        barBeers.add(Product.apply("New Year's Bar Beer",1.5,0.33,20));
+        barBeers.add(Product.apply("Standard Bar Beer",2.0,0.5,Bottling.predefinedBottlings()));
+        barBeers.add(Product.apply("New Year's Bar Beer",1.5,0.33,Bottling.predefinedBottlings()));
         return barBeers;
+    }
+
+    public int getInventory(){
+        var inventory = bottlings.stream().mapToInt(o -> o.getBottles()).sum();
+        return inventory;
     }
 
 }

@@ -11,11 +11,12 @@ public interface State {
     }
 
     default State onCheckBeerSupplyCommand(CheckBeerSupply cmd) {
-        //cmd.getAck().tell(Done.getInstance());
+        cmd.getAck().tell(Done.getInstance());
         return this;
     }
 
     default State onCheckBeerSupplyCommandResponse(CheckBeerSupplyResponse cmd){
+        cmd.getAck().tell(Done.getInstance());
         return this;
     }
 
@@ -40,11 +41,12 @@ public interface State {
     }
 
     default State onBeerOrderCommand(BeerOrderCommand cmd){
+        cmd.getAck().tell(Done.getInstance());
         return this;
     }
 
-    default State onPutBrewIntoStorageCommand(PutBrewIntoStorageCommand cmd){
+    default State onPrepareOrderToShipCommand(PrepareOrderToShipCommand cmd){
+        cmd.getAck().tell(Done.getInstance());
         return this;
     }
-
 }

@@ -6,6 +6,8 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import simulation.entities.employee.messages.EmployeeMessage;
+import simulation.entities.onlinestore.messages.GetBeerStoreRequest;
+import simulation.entities.onlinestore.messages.PutOrderRequest;
 import simulation.entities.onlinestore.state.State;
 import simulation.entities.onlinestore.state.IdleState;
 import simulation.entities.onlinestore.messages.OnlineStoreMessage;
@@ -29,6 +31,16 @@ public class OnlineStore extends AbstractBehavior<OnlineStoreMessage> {
 
     @Override
     public Receive<OnlineStoreMessage> createReceive() {
-        return null;
+        return newReceiveBuilder()
+                .onMessage(GetBeerStoreRequest.class, cmd->{
+                    this.state = state.onGetBeerStoreRequest(cmd);
+                    return Behaviors.same();
+                })
+                .onMessage(PutOrderRequest.class, cmd -> {
+                    this.state = state.onPutOrderRequest(cmd);
+                    return Behaviors.same();
+                })
+                .build();
+
     }
 }

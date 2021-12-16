@@ -11,6 +11,7 @@ import simulation.entities.customer.messages.CustomerMessage;
 import simulation.entities.customer.values.CustomerType;
 import simulation.entities.employee.Employee;
 import simulation.entities.employee.messages.EmployeeMessage;
+import simulation.entities.onlinestore.messages.OnlineStoreMessage;
 
 import java.util.List;
 
@@ -24,6 +25,8 @@ public class CustomerContext {
     ActorContext<CustomerMessage> actor;
 
     ActorRef<EmployeeMessage> employee;
+
+    ActorRef<OnlineStoreMessage> onlinestore;
 
     List<String> favoriteBeers;
 
