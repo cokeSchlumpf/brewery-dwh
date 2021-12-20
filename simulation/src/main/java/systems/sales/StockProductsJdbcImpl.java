@@ -21,7 +21,7 @@ public class StockProductsJdbcImpl implements StockProducts {
         var product_id = findProductIdByName(product.getProductName());
 
         if(stockproduct.isEmpty()){
-            var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--stock-product-insert.sql");
+            var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--insert.sql");
             jdbi.withHandle(handle -> handle
                     .createUpdate(query)
                     .bind("product_id", product_id.get())
@@ -30,7 +30,7 @@ public class StockProductsJdbcImpl implements StockProducts {
                     .execute());
         }
         else{
-            var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--stock-product-update.sql");
+            var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--update.sql");
             var new_bottle_count = stockproduct.get().getAmount();
             jdbi.withHandle(handle -> handle
                     .createUpdate(query)
@@ -44,7 +44,7 @@ public class StockProductsJdbcImpl implements StockProducts {
 
     @Override
     public void insertBeerProduct(Product product) {
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--products-insert.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--insert.sql");
         jdbi.withHandle(handle -> handle
                 .createUpdate(query)
                 .bind("beer_id", product.getBeerId())
@@ -63,7 +63,7 @@ public class StockProductsJdbcImpl implements StockProducts {
             throw new RuntimeException("Product with product_id " + product_id + "does not exist in system.");
         }
         else {
-            var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--bottlings--insert.sql");
+            var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--insert.sql");
             jdbi.withHandle(handle -> handle
                     .createUpdate(query)
                     .bind("product_id", product_id)
@@ -79,7 +79,7 @@ public class StockProductsJdbcImpl implements StockProducts {
         var product_id = findProductIdByName(product.getProductName());
 
         if(product_id.isPresent()){
-            var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--stock-product-select-by-product.sql");
+            var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--select-by-product.sql");
 
             var stockProduct = jdbi.withHandle(handle -> handle
                     .createQuery(query)
@@ -94,7 +94,7 @@ public class StockProductsJdbcImpl implements StockProducts {
     }
     private Optional<Integer> findProductIdByName(String product_name){
 
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--products-select-id-by-name.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-id-by-name.sql");
         return jdbi.withHandle(handle -> handle
                 .createQuery(query)
                 .bind("product_name", product_name)
@@ -110,7 +110,7 @@ public class StockProductsJdbcImpl implements StockProducts {
         var product_id = findProductIdByName(product.getProductName());
 
         if(stockproduct.isPresent()){
-            var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--stock-product-update.sql");
+            var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--update.sql");
             var new_bottle_count = stockproduct.get().getAmount()-count;
             var new_reserved_count = stockproduct.get().getReserved()-count;
             jdbi.withHandle(handle -> handle
@@ -132,7 +132,7 @@ public class StockProductsJdbcImpl implements StockProducts {
         var product_id = findProductIdByName(product.getProductName());
 
         if(stockproduct.isPresent()){
-            var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--stock-product-update.sql");
+            var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--update.sql");
             var new_reserved_count = stockproduct.get().getReserved()+count;
             jdbi.withHandle(handle -> handle
                     .createUpdate(query)
@@ -149,7 +149,7 @@ public class StockProductsJdbcImpl implements StockProducts {
     @Override
     public List<Product> findBeerProductsByBeerId(String beerId){
 
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--products--select-by-beer-id.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-by-beer-id.sql");
 
         var products = jdbi.withHandle(handle -> handle
                 .createQuery(query)
@@ -166,7 +166,7 @@ public class StockProductsJdbcImpl implements StockProducts {
     private Optional<Product> readBeerProductByName(String product_name){
 
         var existingId = findProductIdByName(product_name);
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--products-select-by-id.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-by-id.sql");
 
         var product = jdbi.withHandle(handle -> handle
                 .createQuery(query)
@@ -181,7 +181,7 @@ public class StockProductsJdbcImpl implements StockProducts {
 
     @Override
     public List<Product> listAllBeerProducts(){
-        var query =Templates.renderTemplateFromResources("db/sql.sales/stockproducts--products-select-all.sql");
+        var query =Templates.renderTemplateFromResources("db/sql.sales/products--select-all.sql");
 
         var products = jdbi.withHandle(handle -> handle
                                             .createQuery(query)
@@ -202,7 +202,7 @@ public class StockProductsJdbcImpl implements StockProducts {
 
      /*
     private List<Bottling> readBottlings(int product_id){
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--bottlings--select-by-productID.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--select-by-productID.sql");
 
         var bottlings = jdbi.withHandle(handle -> handle
                 .createQuery(query)
@@ -220,7 +220,7 @@ public class StockProductsJdbcImpl implements StockProducts {
 
 
     private Optional<Bottling> readBottling(int bottling_id){
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--bottlings--select-by-id.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--select-by-id.sql");
 
         var result = jdbi.withHandle(handle -> handle
                                     .createQuery(query)
@@ -247,14 +247,14 @@ public class StockProductsJdbcImpl implements StockProducts {
     }
 
     private void clearProducts(){
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--products-delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--delete-all.sql");
         jdbi.withHandle(handle -> handle
                 .createUpdate(query)
                 .execute());
     }
 
     private void clearBottlings() {
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--bottlings--delete-all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
                 .createUpdate(query)
@@ -262,7 +262,7 @@ public class StockProductsJdbcImpl implements StockProducts {
     }
 
     private void clearStockProducts(){
-        var query = Templates.renderTemplateFromResources("db/sql.sales/stockproducts--stock-product-delete.all.sql");
+        var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
                 .createUpdate(query)
