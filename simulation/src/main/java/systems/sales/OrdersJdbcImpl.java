@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @AllArgsConstructor(staticName = "apply")
 public class OrdersJdbcImpl implements Orders{
+
     private final Jdbi jdbi;
 
     @Override
@@ -32,4 +33,5 @@ public class OrdersJdbcImpl implements Orders{
     public List<Order> getAllOrders() {
         return null;
     }
+
 }
