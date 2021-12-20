@@ -1,0 +1,1 @@
+UPDATE sppl.SALES_STOCK_PRODUCT SET bottles = :bottles, reserved = :reserved WHERE product_id = :product_id;

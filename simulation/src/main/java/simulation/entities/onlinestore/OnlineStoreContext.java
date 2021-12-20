@@ -7,6 +7,7 @@ import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simulation.clock.Clock;
+import simulation.entities.employee.Employee;
 import systems.sales.SalesManagementSystem;
 
 @Value
@@ -21,7 +22,7 @@ public class OnlineStoreContext {
     /**
      * Warum?
      */
-    ActorRef<EmployeeMessage> employee;
+    ActorRef<Employee.Message> employee;
 
     String url;
 

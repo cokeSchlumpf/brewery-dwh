@@ -1,1 +1,0 @@
-DELETE FROM sppl.SALES_BEER;
