@@ -1,69 +1,81 @@
 package simulation.entities.employee;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
-import akka.actor.typed.javadsl.AbstractBehavior;
-import akka.actor.typed.javadsl.Behaviors;
-import akka.actor.typed.javadsl.Receive;
-import org.apache.commons.lang3.concurrent.CircuitBreakingException;
+import akka.actor.typed.javadsl.*;
+import simulation.clock.Clock;
 import simulation.entities.brewery.Brewery;
-import simulation.entities.employee.messages.*;
-import simulation.entities.employee.state.IdleState;
-import simulation.entities.employee.state.State;
+import simulation.entities.employee.brewing.BrewingEmployee;
+import simulation.entities.employee.brewing.messages.BrewABeer;
+import simulation.entities.employee.delivery.DeliveringEmployee;
+import simulation.entities.employee.delivery.messages.CheckOrders;
+import simulation.entities.employee.messages.BrewABeerReminder;
+import simulation.entities.employee.messages.CheckOrdersReminder;
+import simulation.entities.onlinestore.OnlineStore;
 import systems.brewery.BreweryManagementSystem;
 import systems.sales.SalesManagementSystem;
 
-public final class Employee extends AbstractBehavior<EmployeeMessage> {
+import java.time.Duration;
 
-    private State state;
+public final class Employee extends AbstractBehavior<Employee.Message> {
 
-    public Employee(EmployeeContext ctx) {
-        super(ctx.getActor());
-        this.state = IdleState.apply(ctx);
+    public interface Message {}
+
+    private final ActorRef<BrewingEmployee.Message> brewing;
+
+    private final ActorRef<DeliveringEmployee.Message> delivering;
+
+    public Employee(ActorContext<Employee.Message> actor, ActorRef<BrewingEmployee.Message> brewing, ActorRef<DeliveringEmployee.Message> delivering) {
+        super(actor);
+        this.brewing = brewing;
+        this.delivering = delivering;
     }
 
-    public static Behavior<EmployeeMessage> create(BreweryManagementSystem bms, SalesManagementSystem sms, systems.reference.model.Employee employee, Brewery brewery) {
-        return Behaviors.setup(actor -> {
-            var ctx = EmployeeContext.apply(actor, bms, sms,brewery, employee);
-            return new Employee(ctx);
+    public static Behavior<Employee.Message> create(systems.reference.model.Employee employee, ActorRef<OnlineStore.Message> store, BreweryManagementSystem bms, SalesManagementSystem sms, Brewery brewery) {
+        return Behaviors.setup(ctx -> {
+            var brewing = ctx.spawn(BrewingEmployee.create(employee, bms, sms, brewery), "brewing");
+            var delivering = ctx.spawn(DeliveringEmployee.create(employee, store), "delivering");
+
+            Clock
+                .getInstance()
+                .startPeriodicTimer("brew-a-beer", Duration.ofDays(14), () -> AskPattern.ask(
+                    ctx.getSelf(),
+                    ack -> BrewABeerReminder.apply("foo", ack),
+                    Duration.ofMinutes(10),
+                    ctx.getSystem().scheduler()));
+
+            Clock
+                .getInstance()
+                .startPeriodicTimer("check-orders", Duration.ofHours(6), () -> AskPattern.ask(
+                    ctx.getSelf(),
+                    CheckOrdersReminder::apply,
+                    Duration.ofMinutes(10),
+                    ctx.getSystem().scheduler()));
+
+            return new Employee(ctx, brewing, delivering);
         });
     }
 
     @Override
-    public Receive<EmployeeMessage> createReceive() {
+    public Receive<Employee.Message> createReceive() {
         return newReceiveBuilder()
-            .onMessage(BrewABeerCommand.class, cmd -> {
-                this.state = state.onBrewABeerCommand(cmd);
+            .onMessage(BrewABeerReminder.class, msg -> {
+                this.onBrewABeerReminder(msg);
                 return Behaviors.same();
             })
-            .onMessage(ExecuteNextBrewingInstructionCommand.class, cmd -> {
-                this.state = state.onExecuteNextBrewingInstructionCommand(cmd);
-                return Behaviors.same();
-            })
-            .onMessage(CheckMashTemperatureCommand.class, cmd -> {
-                this.state = state.onCheckMashTemperatureCommand(cmd);
-                return Behaviors.same();
-            })
-            .onMessage(CheckHeatingTemperatureCommand.class, cmd -> {
-                this.state = state.onCheckHeatingTemperatureCommand(cmd);
-                return Behaviors.same();
-            })
-            .onMessage(BottlingBrewCommand.class, cmd -> {
-                this.state = state.onBottlingBrewCommand(cmd);
-                return Behaviors.same();
-            })
-            .onMessage(CheckBeerSupply.class, cmd -> {
-                this.state = state.onCheckBeerSupplyCommand(cmd);
-                return Behaviors.same();
-            })
-            .onMessage(BeerOrderCommand.class, cmd -> {
-                this.state = state.onBeerOrderCommand(cmd);
-                return Behaviors.same();
-            })
-            .onMessage(PrepareOrderToShipCommand.class, cmd -> {
-                this.state = state.onPrepareOrderToShipCommand(cmd);
+            .onMessage(CheckOrdersReminder.class, msg -> {
+                this.onCheckOrdersReminder(msg);
                 return Behaviors.same();
             })
             .build();
+    }
+
+    private void onBrewABeerReminder(BrewABeerReminder msg) {
+        brewing.tell(BrewABeer.apply(msg.getBeerKey(), msg.getAck()));
+    }
+
+    private void onCheckOrdersReminder(CheckOrdersReminder msg) {
+        delivering.tell(CheckOrders.apply(msg.getAck()));
     }
 
 }

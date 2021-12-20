@@ -8,14 +8,18 @@ import org.jdbi.v3.core.Jdbi;
 @AllArgsConstructor(staticName = "apply")
 public class SalesManagementSystem {
 
-    private final Beers beers;
+    private final StockProducts stockProducts;
 
     private final Orders orders;
 
+    private final Customers customers;
+
     public static SalesManagementSystem apply(DatabaseConfiguration config) {
         var jdbi = Jdbi.create(config.getConnection(), config.getUsername(), config.getPassword());
-        var beers = BeersJdbcImpl.apply(jdbi);
+        var beers = StockProductsJdbcImpl.apply(jdbi);
         var orders = OrdersJdbcImpl.apply(jdbi);
-        return apply(beers, orders);
+        var customers = (Customers) null;
+
+        return apply(beers, orders, customers);
     }
 }

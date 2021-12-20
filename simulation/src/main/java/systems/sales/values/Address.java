@@ -5,16 +5,12 @@ import lombok.Value;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class Customer {
+public class Address {
 
-    int id;
+    String street;
 
-    String email;
+    String zipCode;
 
-    String firstname;
-
-    String name;
-
-    Address address;
+    String city;
 
 }

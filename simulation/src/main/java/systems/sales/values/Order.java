@@ -1,12 +1,13 @@
 package systems.sales.values;
 
-import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.With;
+import systems.sales.Orders;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @With
 @Value
@@ -14,31 +15,37 @@ import java.util.List;
 public class Order {
 
     /**
-    * The customer that made the order
+     * A unique id for the order.
+     */
+    int orderId;
+
+    /**
+     * The customer that made the order
      **/
     Customer customer;
 
     /**
      * The time that the order was made
      */
-    Instant order_time;
+    Instant ordered;
+
 
     /**
-     * The time that the order was delivered/ executed
+     * The time that the order was delivered/ executed. This value might be null if order has not been delivered yet.
      */
-
-    Instant delivery_time;
+    Instant delivered;
 
     /**
      * Items of the order
      */
-
     List<OrderItem> items;
 
-    public static Order predefinedOrder(){
-        Customer customer = Customer.apply(1, "customer@brewery.com", "sam","jones");
-        List<OrderItem> item = Lists.<OrderItem>newArrayList();
-        item.add(OrderItem.predefinedOrderItem());
-        return Order.apply(customer,Instant.now(), null, item);
+    public static Order apply(int orderId, Customer customer, Instant ordered, List<OrderItem> items) {
+        return apply(orderId, customer, ordered, null, items);
     }
+
+    public Optional<Instant> getDelivered() {
+        return Optional.ofNullable(delivered);
+    }
+
 }

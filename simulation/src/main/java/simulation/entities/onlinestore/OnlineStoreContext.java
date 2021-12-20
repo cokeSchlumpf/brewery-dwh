@@ -7,8 +7,6 @@ import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simulation.clock.Clock;
-import simulation.entities.employee.messages.EmployeeMessage;
-import simulation.entities.onlinestore.messages.OnlineStoreMessage;
 import systems.sales.SalesManagementSystem;
 
 @Value
@@ -16,10 +14,13 @@ import systems.sales.SalesManagementSystem;
 public class OnlineStoreContext {
     private static final Logger LOG = LoggerFactory.getLogger(OnlineStore.class);
 
-    ActorContext<OnlineStoreMessage> actor;
+    ActorContext<OnlineStore.Message> actor;
 
     SalesManagementSystem salesManagementSystem;
 
+    /**
+     * Warum?
+     */
     ActorRef<EmployeeMessage> employee;
 
     String url;

@@ -14,6 +14,11 @@ import java.util.List;
 public class Bottling {
 
     /**
+     * The product which is bottled.
+     */
+    Product product;
+
+    /**
      * The moment when the bottling was executed.
      */
     Instant bottled;
@@ -24,20 +29,15 @@ public class Bottling {
     Instant bestBefore;
 
     /**
-     * The overall quantity (in litres) of filled up beer.
-     */
-    int quantity;
-
-    /**
      * The number of bottles which have been bottled.
      */
     int bottles;
 
-    public static List<Bottling> predefinedBottlings(){
+    public static List<Bottling> predefinedBottlings(Product product){
         var bottlings = Lists.<Bottling>newArrayList();
-        bottlings.add(Bottling.apply(Instant.now(), Instant.now().plus(P.randomDuration(Duration.ofDays(90),Duration.ofDays(30))),40,40));
-        bottlings.add(Bottling.apply(Instant.now(), Instant.now().plus(P.randomDuration(Duration.ofDays(90),Duration.ofDays(30))),40,10));
-        bottlings.add(Bottling.apply(Instant.now(), Instant.now().plus(P.randomDuration(Duration.ofDays(90),Duration.ofDays(30))),40,5));
+        bottlings.add(Bottling.apply(product, Instant.now(), Instant.now().plus(P.randomDuration(Duration.ofDays(90),Duration.ofDays(30))),40));
+        bottlings.add(Bottling.apply(product, Instant.now(), Instant.now().plus(P.randomDuration(Duration.ofDays(90),Duration.ofDays(30))), 10));
+        bottlings.add(Bottling.apply(product, Instant.now(), Instant.now().plus(P.randomDuration(Duration.ofDays(90),Duration.ofDays(30))), 5));
         return bottlings;
     }
 }
