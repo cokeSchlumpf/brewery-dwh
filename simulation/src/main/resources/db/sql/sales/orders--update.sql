@@ -1,0 +1,1 @@
+UPDATE sppl.SALES_ORDER SET customer = :customer, order_date = :order_date, delivery_date = :delivery_date WHERE id = :id;

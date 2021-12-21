@@ -1,0 +1,1 @@
+SELECT FORM sppl.SALES_ORDER_ITEM id, product, quantity WHERE id = :id;

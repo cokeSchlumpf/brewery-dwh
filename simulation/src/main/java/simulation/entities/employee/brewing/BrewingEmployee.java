@@ -271,15 +271,15 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
             .waitFor(P.randomDuration(Duration.ofDays(3), Duration.ofDays(2)))
             .run(now -> {
                 var products = sms
-                    .getStockProducts()
+                    .getProducts()
                     .findBeerProductsByBeerId(currentBrew.getName());
 
                 products.forEach(product -> {
                     var productVolume = Math.round(volume / products.size());
                     var bottlesCount = Math.toIntExact(Math.round(productVolume / product.getVolume()));
                     var bottling = Bottling.apply(product, now, bestBeforeDate, bottlesCount);
-                    sms.getStockProducts().insertBottling(bottling);
-                    sms.getStockProducts().addToStock(product, bottlesCount);
+                    sms.getProducts().insertBottling(bottling);
+                    sms.getProducts().addToStock(product, bottlesCount);
 
                     log("Added `%d` bottles of `%s` to stock.", bottlesCount, product.getProductName());
                 });

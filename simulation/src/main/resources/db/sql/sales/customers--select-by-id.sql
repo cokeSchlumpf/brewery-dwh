@@ -1,0 +1,1 @@
+SELECT id, email, firstname, name, street, zip_code, city FROM sppl.SALES_CUSTOMERS WHERE id = :id;

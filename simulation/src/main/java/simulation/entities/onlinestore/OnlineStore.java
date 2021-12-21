@@ -61,7 +61,7 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
 
         var inventory = this
             .salesManagementSystem
-            .getStockProducts()
+            .getProducts()
             .listAvailableProducts()
             .stream()
             .filter(p -> p.getAmountAvailable() > 0)
@@ -83,7 +83,7 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
 
         order
             .getItems()
-            .forEach(item -> salesManagementSystem.getStockProducts().removeFromStock(item.getBeer(), item.getBottles()));
+            .forEach(item -> salesManagementSystem.getProducts().removeFromStock(item.getBeer(), item.getBottles()));
 
         this.salesManagementSystem.getOrders().updateOrder(order);
         msg.getAck().tell(Done.getInstance());
@@ -121,7 +121,7 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
 
 
     private String stockToString() {
-        var available = salesManagementSystem.getStockProducts().listAvailableProducts();
+        var available = salesManagementSystem.getProducts().listAvailableProducts();
         var result = new StringBuilder();
 
         available.forEach(prod -> result

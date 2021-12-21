@@ -15,4 +15,6 @@ public interface Customers {
 
     Customer insertCustomer(String email, String firstname, String name, Address address);
 
+    void clear();
+
 }

@@ -48,6 +48,18 @@ public interface StockProducts {
     /*
      * read
      */
+    Optional<Integer> findProductId(Product product);
+
+    default Integer getProductId(Product product) {
+        return findProductId(product).orElseThrow();
+    }
+
+    Optional<Product> findProductById(int id);
+
+    default Product getProductById(int id) {
+        return findProductById(id).orElseThrow();
+    }
+
     List<Product> findBeerProductsByBeerId(String beerId);
 
     List<Product> listAllBeerProducts();

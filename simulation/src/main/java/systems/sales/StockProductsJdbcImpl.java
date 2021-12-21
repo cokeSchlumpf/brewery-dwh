@@ -3,10 +3,14 @@ package systems.sales;
 import common.Templates;
 import lombok.AllArgsConstructor;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.mapper.RowMapper;
+import org.jdbi.v3.core.statement.StatementContext;
 import systems.sales.values.Bottling;
 import systems.sales.values.Product;
 import systems.sales.values.StockProduct;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,26 +22,25 @@ public class StockProductsJdbcImpl implements StockProducts {
     @Override
     public void addToStock(Product product, int count) {
         var stockproduct = findStockByProduct(product);
-        var product_id = findProductIdByName(product.getProductName());
+        var product_id = findProductIdByName(product.getProductName()).orElseThrow();
 
-        if(stockproduct.isEmpty()){
+        if (stockproduct.isEmpty()) {
             var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--insert.sql");
             jdbi.withHandle(handle -> handle
-                    .createUpdate(query)
-                    .bind("product_id", product_id.get())
-                    .bind("bottles", count)
-                    .bind("reserved", 0)
-                    .execute());
-        }
-        else{
+                .createUpdate(query)
+                .bind("product_id", product_id)
+                .bind("bottles", count)
+                .bind("reserved", 0)
+                .execute());
+        } else {
             var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--update.sql");
             var new_bottle_count = stockproduct.get().getAmount();
             jdbi.withHandle(handle -> handle
-                    .createUpdate(query)
-                    .bind("bottles", new_bottle_count)
-                    .bind("reserved", stockproduct.get().getReserved())
-                    .bind("product_id", product_id)
-                    .execute());
+                .createUpdate(query)
+                .bind("bottles", new_bottle_count)
+                .bind("reserved", stockproduct.get().getReserved())
+                .bind("product_id", product_id)
+                .execute());
         }
 
     }
@@ -46,12 +49,12 @@ public class StockProductsJdbcImpl implements StockProducts {
     public void insertBeerProduct(Product product) {
         var query = Templates.renderTemplateFromResources("db/sql.sales/products--insert.sql");
         jdbi.withHandle(handle -> handle
-                .createUpdate(query)
-                .bind("beer_id", product.getBeerId())
-                .bind("product_name", product.getProductName())
-                .bind("price", product.getPrice())
-                .bind("volume", product.getVolume())
-                .execute()
+            .createUpdate(query)
+            .bind("beer_id", product.getBeerId())
+            .bind("product_name", product.getProductName())
+            .bind("price", product.getPrice())
+            .bind("volume", product.getVolume())
+            .execute()
         );
     }
 
@@ -59,49 +62,46 @@ public class StockProductsJdbcImpl implements StockProducts {
     public void insertBottling(Bottling bottling) {
         var product_id = findProductIdByName(bottling.getProduct().getProductName());
 
-        if(product_id.isEmpty()){
+        if (product_id.isEmpty()) {
             throw new RuntimeException("Product with product_id " + product_id + "does not exist in system.");
-        }
-        else {
+        } else {
             var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--insert.sql");
             jdbi.withHandle(handle -> handle
-                    .createUpdate(query)
-                    .bind("product_id", product_id)
-                    .bind("bottled", bottling.getBottled())
-                    .bind("best_before_date", bottling.getBestBefore())
-                    .bind("bottles", bottling.getBottles())
-                    .execute());
+                .createUpdate(query)
+                .bind("product_id", product_id)
+                .bind("bottled", bottling.getBottled())
+                .bind("best_before_date", bottling.getBestBefore())
+                .bind("bottles", bottling.getBottles())
+                .execute());
         }
     }
 
-    private Optional<StockProduct> findStockByProduct(Product product){
+    private Optional<StockProduct> findStockByProduct(Product product) {
 
         var product_id = findProductIdByName(product.getProductName());
 
-        if(product_id.isPresent()){
+        if (product_id.isPresent()) {
             var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--select-by-product.sql");
 
-            var stockProduct = jdbi.withHandle(handle -> handle
-                    .createQuery(query)
-                    .bind("product_id", product_id)
-                    .map((rs,ctx) -> StockProduct.apply(product, rs.getInt("bottles"), rs.getInt("reserved")))
-                    .findFirst());
-            return stockProduct;
-        }
-        else{
+            return jdbi.withHandle(handle -> handle
+                .createQuery(query)
+                .bind("product_id", product_id)
+                .map((rs, ctx) -> StockProduct.apply(product, rs.getInt("bottles"), rs.getInt("reserved")))
+                .findFirst());
+        } else {
             throw new RuntimeException("Product does not exist");
         }
     }
-    private Optional<Integer> findProductIdByName(String product_name){
+
+    private Optional<Integer> findProductIdByName(String product_name) {
 
         var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-id-by-name.sql");
         return jdbi.withHandle(handle -> handle
-                .createQuery(query)
-                .bind("product_name", product_name)
-                .mapTo(Integer.class)
-                .findOne());
+            .createQuery(query)
+            .bind("product_name", product_name)
+            .mapTo(Integer.class)
+            .findOne());
     }
-
 
 
     @Override
@@ -109,18 +109,17 @@ public class StockProductsJdbcImpl implements StockProducts {
         var stockproduct = findStockByProduct(product);
         var product_id = findProductIdByName(product.getProductName());
 
-        if(stockproduct.isPresent()){
+        if (stockproduct.isPresent()) {
             var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--update.sql");
-            var new_bottle_count = stockproduct.get().getAmount()-count;
-            var new_reserved_count = stockproduct.get().getReserved()-count;
+            var new_bottle_count = stockproduct.get().getAmount() - count;
+            var new_reserved_count = stockproduct.get().getReserved() - count;
             jdbi.withHandle(handle -> handle
-                    .createUpdate(query)
-                    .bind("bottles", new_bottle_count)
-                    .bind("reserved", new_reserved_count)
-                    .bind("product_id", product_id)
-                    .execute());
-        }
-        else{
+                .createUpdate(query)
+                .bind("bottles", new_bottle_count)
+                .bind("reserved", new_reserved_count)
+                .bind("product_id", product_id)
+                .execute());
+        } else {
             throw new RuntimeException("Product does not exist in stock");
         }
 
@@ -131,63 +130,69 @@ public class StockProductsJdbcImpl implements StockProducts {
         var stockproduct = findStockByProduct(product);
         var product_id = findProductIdByName(product.getProductName());
 
-        if(stockproduct.isPresent()){
+        if (stockproduct.isPresent()) {
             var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--update.sql");
-            var new_reserved_count = stockproduct.get().getReserved()+count;
+            var new_reserved_count = stockproduct.get().getReserved() + count;
             jdbi.withHandle(handle -> handle
-                    .createUpdate(query)
-                    .bind("bottles", stockproduct.get().getAmount())
-                    .bind("reserved", new_reserved_count)
-                    .bind("product_id", product_id)
-                    .execute());
-        }
-        else{
+                .createUpdate(query)
+                .bind("bottles", stockproduct.get().getAmount())
+                .bind("reserved", new_reserved_count)
+                .bind("product_id", product_id)
+                .execute());
+        } else {
             throw new RuntimeException("Product does not exist in stock");
         }
     }
 
     @Override
-    public List<Product> findBeerProductsByBeerId(String beerId){
+    public Optional<Integer> findProductId(Product product) {
+        return findProductIdByName(product.getProductName());
+    }
+
+    @Override
+    public Optional<Product> findProductById(int id) {
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-by-id.sql");
+
+        return jdbi.withHandle(handle -> handle
+            .createQuery(query)
+            .bind("product_id", id)
+            .map(ProductMapper.apply())
+            .findFirst());
+    }
+
+    @Override
+    public List<Product> findBeerProductsByBeerId(String beerId) {
 
         var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-by-beer-id.sql");
 
-        var products = jdbi.withHandle(handle -> handle
-                .createQuery(query)
-                .bind("beer_id", beerId)
-                .map((rs, ctx) -> {
-                    return Product.apply(rs.getString("product_name"), rs.getString("beer_id"), rs.getDouble("price"), rs.getDouble("volume"));
-                })
-                .list());
-
-        return products;
+        return jdbi.withHandle(handle -> handle
+            .createQuery(query)
+            .bind("beer_id", beerId)
+            .map(ProductMapper.apply())
+            .list());
 
     }
 
-    private Optional<Product> readBeerProductByName(String product_name){
+    private Optional<Product> readBeerProductByName(String product_name) {
 
         var existingId = findProductIdByName(product_name);
         var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-by-id.sql");
 
-        var product = jdbi.withHandle(handle -> handle
-                .createQuery(query)
-                .bind("product_id", existingId)
-                .map((rs,ctx) ->{
-                    return Product.apply(rs.getString("product_name"), rs.getString("beer_id"), rs.getDouble("price"), rs.getDouble("volume"));
-                })
-                .findFirst());
-        return product;
-
+        return jdbi.withHandle(handle -> handle
+            .createQuery(query)
+            .bind("product_id", existingId)
+            .map(ProductMapper.apply())
+            .findFirst());
     }
 
     @Override
-    public List<Product> listAllBeerProducts(){
-        var query =Templates.renderTemplateFromResources("db/sql.sales/products--select-all.sql");
+    public List<Product> listAllBeerProducts() {
+        var query = Templates.renderTemplateFromResources("db/sql.sales/products--select-all.sql");
 
-        var products = jdbi.withHandle(handle -> handle
-                                            .createQuery(query)
-                                            .map((rs,ctx) -> Product.apply(rs.getString("product_name"),rs.getString("beer_id"), rs.getDouble("price"), rs.getDouble("volume")))
-                                            .list());
-        return products;
+        return jdbi.withHandle(handle -> handle
+            .createQuery(query)
+            .map(ProductMapper.apply())
+            .list());
     }
 
     @Override
@@ -200,44 +205,6 @@ public class StockProductsJdbcImpl implements StockProducts {
         return null;
     }
 
-     /*
-    private List<Bottling> readBottlings(int product_id){
-        var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--select-by-productID.sql");
-
-        var bottlings = jdbi.withHandle(handle -> handle
-                .createQuery(query)
-                .bind("product_id", product_id)
-                .map((rs, ctx) -> {
-                    return rs.getInt("id");
-                })
-                .stream()
-                .map(this::readBottling)
-                .filter((obj)-> !obj.isEmpty())
-                .map((bot) -> bot.get())
-                .collect(Collectors.toList()));
-        return bottlings;
-    }
-
-
-    private Optional<Bottling> readBottling(int bottling_id){
-        var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--select-by-id.sql");
-
-        var result = jdbi.withHandle(handle -> handle
-                                    .createQuery(query)
-                                    .bind("id", bottling_id)
-                                    .map((rs, ctx) -> {
-                                        return Bottling.apply(
-
-                                                rs.getTimestamp("bottled").toInstant(),
-                                                rs.getTimestamp("best_before_date").toInstant(),
-                                                rs.getInt("quantity"),
-                                                rs.getInt("bottles"));
-                                    })
-                                    .findFirst());
-        return result;
-    }
-     */
-
 
     @Override
     public void clear() {
@@ -246,26 +213,38 @@ public class StockProductsJdbcImpl implements StockProducts {
         this.clearProducts();
     }
 
-    private void clearProducts(){
+    private void clearProducts() {
         var query = Templates.renderTemplateFromResources("db/sql.sales/products--delete-all.sql");
         jdbi.withHandle(handle -> handle
-                .createUpdate(query)
-                .execute());
+            .createUpdate(query)
+            .execute());
     }
 
     private void clearBottlings() {
         var query = Templates.renderTemplateFromResources("db/sql.sales/bottlings--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
-                .createUpdate(query)
-                .execute());
+            .createUpdate(query)
+            .execute());
     }
 
-    private void clearStockProducts(){
+    private void clearStockProducts() {
         var query = Templates.renderTemplateFromResources("db/sql.sales/stock-product--delete-all.sql");
 
         jdbi.withHandle(handle -> handle
-                .createUpdate(query)
-                .execute());
+            .createUpdate(query)
+            .execute());
     }
+
+    @AllArgsConstructor(staticName = "apply")
+    private static class ProductMapper implements RowMapper<Product> {
+
+        @Override
+        public Product map(ResultSet rs, StatementContext ctx) throws SQLException {
+            return Product.apply(rs.getString("product_name"), rs.getString("beer_id"), rs.getDouble("price"),
+                rs.getDouble("volume"));
+        }
+
+    }
+
 }

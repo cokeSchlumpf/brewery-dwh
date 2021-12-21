@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public interface Orders {
 
+    void clear();
+
     Optional<Order> findOrderById(int id);
 
     default Order getOrderById(int id) {
