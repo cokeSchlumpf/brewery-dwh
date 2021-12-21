@@ -44,6 +44,7 @@ public final class Employee extends AbstractBehavior<Employee.Message> {
                     Duration.ofMinutes(10),
                     ctx.getSystem().scheduler()));
 
+            /*
             Clock
                 .getInstance()
                 .startPeriodicTimer("check-orders", Duration.ofHours(6), () -> AskPattern.ask(
@@ -51,6 +52,7 @@ public final class Employee extends AbstractBehavior<Employee.Message> {
                     CheckOrdersReminder::apply,
                     Duration.ofMinutes(10),
                     ctx.getSystem().scheduler()));
+             */
 
             return new Employee(ctx, brewing, delivering);
         });

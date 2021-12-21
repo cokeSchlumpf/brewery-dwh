@@ -9,6 +9,8 @@ import com.google.common.collect.Lists;
 import common.Operators;
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -23,6 +25,8 @@ import java.util.function.Function;
 
 @AllArgsConstructor(staticName = "apply")
 public final class Scheduler<T> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
 
     private final ActorContext<T> ctx;
 
@@ -58,17 +62,13 @@ public final class Scheduler<T> {
     }
 
     public <R> Scheduler<T> ask(ActorRef<R> recipient, BiFunction<Instant, ActorRef<Done>, R> messageFactory) {
-        this.run((now, ack) -> {
-                var a = AskPattern
-            .ask(recipient, (ActorRef<Done> ref) -> {
-                var b = messageFactory.apply(now, ref);
-                return b;
-                }, Duration.ofMinutes(1),
-                ctx.getSystem()
-                    .scheduler());
-                a.thenAccept(done -> {
-                ack.complete(done);});
-        });
+        this.run((now, ack) -> AskPattern
+            .ask(
+                recipient,
+                (ActorRef<Done> ref) -> messageFactory.apply(now, ref),
+                Duration.ofMinutes(1),
+                ctx.getSystem().scheduler())
+            .thenAccept(ack::complete));
 
         return this;
     }
@@ -129,9 +129,14 @@ public final class Scheduler<T> {
             var result = Operators.allOf(actions
                     .stream()
                     .map(action -> {
-                        var ack = new CompletableFuture<Done>();
-                        action.accept(ClockMoment.apply(time, ack));
-                        return ack;
+                        try {
+                            var ack = new CompletableFuture<Done>();
+                            action.accept(ClockMoment.apply(time, ack));
+                            return ack;
+                        } catch (Exception e) {
+                            LOG.error("An exception occurred while running action.", e);
+                            throw e;
+                        }
                     }))
                 .thenApply(list -> Done.getInstance());
 
@@ -185,13 +190,18 @@ public final class Scheduler<T> {
                     var now = Clock.getInstance().getNowAsInstant();
 
                     return Operators
-                        .allOf(actions
+                        .<Done>allOfSequential(actions
                             .stream()
-                            .map(action -> {
-                                var ack = new CompletableFuture<Done>();
-                                var moment = ClockMoment.apply(now, ack);
-                                action.accept(moment);
-                                return ack;
+                            .map(action -> () -> {
+                                try {
+                                    var ack = new CompletableFuture<Done>();
+                                    var moment = ClockMoment.apply(now, ack);
+                                    action.accept(moment);
+                                    return ack;
+                                } catch (Exception e) {
+                                    LOG.error("An exception occurred while running action.", e);
+                                    throw e;
+                                }
                             }))
                         .thenApply(ignore -> {
                             if (next != null) {

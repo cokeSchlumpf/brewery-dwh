@@ -1,6 +1,7 @@
 package common;
 
 import akka.japi.function.*;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 
@@ -139,6 +140,30 @@ public final class Operators {
         });
 
         return result;
+    }
+
+    public static <T> CompletionStage<List<T>> allOfSequential(Stream<Creator<CompletionStage<T>>> futures) {
+        return allOfSequential(futures.collect(Collectors.toList()));
+    }
+
+    public static <T> CompletionStage<List<T>> allOfSequential(List<Creator<CompletionStage<T>>> futures) {
+        if (futures.isEmpty()) {
+            return CompletableFuture.completedFuture(List.of());
+        } else {
+            return Operators
+                .suppressExceptions(() -> futures.get(0).create())
+                .thenCompose(result -> {
+                    var remaining = futures.subList(1, futures.size());
+
+                    return allOfSequential(remaining)
+                        .thenApply(remainingResult -> {
+                            var results = Lists.<T>newArrayList();
+                            results.add(result);
+                            results.addAll(remainingResult);
+                            return results;
+                        });
+                });
+        }
     }
 
     public static <T> CompletionStage<Optional<T>> optCS(Optional<CompletionStage<T>> opt) {

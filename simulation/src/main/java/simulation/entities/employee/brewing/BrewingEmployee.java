@@ -95,13 +95,6 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
             this.brewABeerQueue.offer(cmd);
             cmd.getAck().tell(Done.getInstance());
         } else {
-            Clock
-                .scheduler(this.getContext())
-                .run(this.brewery::prepareBrew)
-                .waitFor(P.randomDuration(Duration.ofMinutes(1)))
-                .ask(ExecuteNextBrewingInstruction::apply)
-                .scheduleAndAcknowledge(cmd.getAck());
-
             var recipe = this.bms
                 .getRecipes()
                 .getRecipeByName(cmd.getName());
@@ -114,6 +107,13 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
             this.currentBrew = cmd;
 
             log("Start brewing beer `{}`", brew.getBeer().getBeerKey());
+
+            Clock
+                .scheduler(this.getContext())
+                .run(this.brewery::prepareBrew)
+                .waitFor(P.randomDuration(Duration.ofMinutes(1)))
+                .ask(ExecuteNextBrewingInstruction::apply)
+                .scheduleAndAcknowledge(cmd.getAck());
         }
     }
 
@@ -272,7 +272,7 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
             .run(now -> {
                 var products = sms
                     .getProducts()
-                    .findBeerProductsByBeerId(currentBrew.getName());
+                    .getProductsByBeerId(currentBrew.getName());
 
                 products.forEach(product -> {
                     var productVolume = Math.round(volume / products.size());
@@ -308,7 +308,7 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
                         currentTemperature, instruction.getEndTemperature(), instruction.getDuration());
                     brewery.startMashing();
                     brewery.setHeating(level);
-                    log("Started mashing and set brewery heating level to %s", level);
+                    log("Started mashing and set brewery heating level to %s, currentTemperature %.2f °C, target temperature: %.2f °C", level, currentTemperature, instruction.getEndTemperature());
                 })
                 .waitFor(checkAgainAfter)
                 .ask((now, ack) -> CheckMashTemperature.apply(

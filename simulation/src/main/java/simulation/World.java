@@ -50,7 +50,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
         Ingredient.predefined().forEach(ingredient -> bms.getIngredients().insertIngredient(ingredient));
         IngredientProduct.predefined().forEach(product -> bms.getIngredientProducts().insertIngredientProduct(product));
         Recipe.predefined().forEach(recipe -> bms.getRecipes().insertRecipe(recipe));
-        Product.predefined().forEach(product -> sms.getProducts().insertBeerProduct(product));
+        Product.predefined().forEach(product -> sms.getProducts().insertProduct(product));
         LOG.info("Initial data inserted.");
 
         /*

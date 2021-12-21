@@ -9,7 +9,10 @@ import akka.actor.typed.javadsl.Receive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simulation.clock.Clock;
-import simulation.entities.onlinestore.messages.*;
+import simulation.entities.onlinestore.messages.BrowseOffers;
+import simulation.entities.onlinestore.messages.CheckOpenOrders;
+import simulation.entities.onlinestore.messages.MarkOrderAsShipped;
+import simulation.entities.onlinestore.messages.PlaceOrder;
 import systems.sales.SalesManagementSystem;
 import systems.sales.values.Customer;
 
@@ -62,7 +65,7 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
         var inventory = this
             .salesManagementSystem
             .getProducts()
-            .listAvailableProducts()
+            .getAllStockProducts()
             .stream()
             .filter(p -> p.getAmountAvailable() > 0)
             .collect(Collectors.toList());
@@ -72,7 +75,8 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
 
     private void onCheckOpenOrders(CheckOpenOrders msg) {
         log("Checking Open Orders - View currents stock:\n", stockToString());
-        msg.getOrders().tell(CheckOpenOrders.CheckOrdersResponse.apply(this.salesManagementSystem.getOrders().getAllOrders()));
+        msg.getOrders()
+            .tell(CheckOpenOrders.CheckOrdersResponse.apply(this.salesManagementSystem.getOrders().getAllOrders()));
     }
 
     private void onMarkOrderAsShipped(MarkOrderAsShipped msg) {
@@ -91,7 +95,8 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
 
     private void onPlaceOrder(PlaceOrder msg) {
         var customer = createOrGetCustomer(msg.getCustomer());
-        var orderId = this.salesManagementSystem.getOrders().insertOrder(customer.getId(), Clock.getInstance().getNowAsInstant(), msg.getItems());
+        var orderId = this.salesManagementSystem.getOrders()
+            .insertOrder(customer.getId(), Clock.getInstance().getNowAsInstant(), msg.getItems());
         var response = PlaceOrder.PlaceOrderResponse.apply(customer.getId(), orderId);
 
         msg.getConfirmTo().tell(response);
@@ -115,23 +120,27 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
         }
     }
 
-    public void log(String message, Object...args) {
+    public void log(String message, Object... args) {
         LOG.info(String.format("%s -- %s", Clock.getInstance().getNow(), String.format(message, args)));
     }
 
 
     private String stockToString() {
-        var available = salesManagementSystem.getProducts().listAvailableProducts();
+        var available = salesManagementSystem.getProducts().getAllStockProducts();
         var result = new StringBuilder();
 
-        available.forEach(prod -> result
-            .append("> ")
-            .append(prod.getProduct().getProductName())
-            .append(", amount:")
-            .append(prod.getAmount())
-            .append(", reserved: ")
-            .append(prod.getReserved())
-            .append("\n"));
+        if (available.isEmpty()) {
+            result.append("<EMPTY>");
+        } else {
+            available.forEach(prod -> result
+                .append("> ")
+                .append(prod.getProduct().getProductName())
+                .append(", amount:")
+                .append(prod.getAmount())
+                .append(", reserved: ")
+                .append(prod.getReserved())
+                .append("\n"));
+        }
 
         return result.toString();
     }

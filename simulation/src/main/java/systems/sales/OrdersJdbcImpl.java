@@ -51,41 +51,32 @@ public class OrdersJdbcImpl implements Orders{
             .findFirst());
     }
 
-    private List<OrderItem> getOrderItems(int orderId) {
-        var query = Templates.renderTemplateFromResources("db/sql/sales/orders--order-items--select.sql");
+    @Override
+    public List<Order> getAllOrders() {
+        var query = Templates.renderTemplateFromResources("db/sql/sales/orders--select.sql");
 
         return jdbi.withHandle(handle -> handle
             .createQuery(query)
-            .bind("id", orderId)
-            .map(OrderItemMapper.apply(products))
-            .stream()
-            .collect(Collectors.toList()));
+            .map((rs, ctx) -> rs.getInt("id"))
+            .map(this::getOrderById)
+            .list());
     }
 
     @Override
     public int insertOrder(int customerId, Instant orderTime, List<OrderItem> items) {
         var query = Templates.renderTemplateFromResources("db/sql/sales/orders--insert.sql");
 
-        return jdbi.withHandle(handle -> handle
+        var orderId = jdbi.withHandle(handle -> handle
             .createUpdate(query)
             .bind("customer", customerId)
             .bind("order_date", orderTime)
             .executeAndReturnGeneratedKeys("id")
             .map((rs, ctx) -> rs.getInt("id"))
             .first());
-    }
 
-    public void insertOrderItem(int orderId, OrderItem item) {
-        var query = Templates.renderTemplateFromResources("db/sql/sales/orders--order-items--insert.sql");
+        items.forEach(item -> insertOrderItem(orderId, item));
 
-        var productId = products.getProductId(item.getBeer());
-
-        jdbi.withHandle(handle -> handle
-            .createUpdate(query)
-            .bind("id", orderId)
-            .bind("product", productId)
-            .bind("quantity", item.getBottles())
-            .execute());
+        return orderId;
     }
 
     @Override
@@ -103,9 +94,28 @@ public class OrdersJdbcImpl implements Orders{
             .execute());
     }
 
-    @Override
-    public List<Order> getAllOrders() {
-        return null;
+    private void insertOrderItem(int orderId, OrderItem item) {
+        var query = Templates.renderTemplateFromResources("db/sql/sales/orders--order-items--insert.sql");
+
+        var productId = products.getProductId(item.getBeer());
+
+        jdbi.withHandle(handle -> handle
+            .createUpdate(query)
+            .bind("id", orderId)
+            .bind("product", productId)
+            .bind("quantity", item.getBottles())
+            .execute());
+    }
+
+    private List<OrderItem> getOrderItems(int orderId) {
+        var query = Templates.renderTemplateFromResources("db/sql/sales/orders--order-items--select.sql");
+
+        return jdbi.withHandle(handle -> handle
+            .createQuery(query)
+            .bind("id", orderId)
+            .map(OrderItemMapper.apply(products))
+            .stream()
+            .collect(Collectors.toList()));
     }
 
     @AllArgsConstructor(staticName = "apply")

@@ -1,6 +1,7 @@
 package simulation;
 
 import akka.actor.typed.ActorSystem;
+import common.Operators;
 import common.configs.ApplicationConfiguration;
 import simulation.clock.Clock;
 import simulation.entities.brewery.Brewery;
@@ -32,11 +33,9 @@ public final class Application {
         /*
          * Initialize simulation.
          */
-        Clock.getInstance().startPeriodicTimer("Say time", Duration.ofDays(1), () -> {
-            System.out.println("---");
-        });
-
         var system = ActorSystem.create(World.create(refDataMgmt, bms, brewery, sms), "world");
+
+        Operators.suppressExceptions(() -> Thread.sleep(5000));
         var killSwitch = Clock.getInstance().run();
 
         Clock.getInstance().startSingleTimer("kill", Duration.ofDays(365), () -> {

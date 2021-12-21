@@ -11,7 +11,7 @@ import java.util.List;
 
 public abstract class CustomerBehavior {
 
-    private CustomerProperties properties;
+    private final CustomerProperties properties;
 
     private Integer customerId;
 
@@ -23,7 +23,9 @@ public abstract class CustomerBehavior {
     public abstract List<OrderItem> generateOrder(List<StockProduct> products);
 
     public PlaceOrder.Customer getCustomer() {
-        if (customerId == null && P.randomBoolean(0.2)) {
+        if (customerId != null && P.randomBoolean(0.85)) {
+            return PlaceOrder.RegisteredCustomer.apply(customerId);
+        } else {
             var address = Address.apply(
                 properties.getStreet().getValue(),
                 properties.getZipCode().getValue(),
@@ -34,8 +36,6 @@ public abstract class CustomerBehavior {
                 properties.getFirstName().getValue(),
                 properties.getLastName().getValue(),
                 address);
-        } else {
-            return PlaceOrder.RegisteredCustomer.apply(customerId);
         }
     }
 

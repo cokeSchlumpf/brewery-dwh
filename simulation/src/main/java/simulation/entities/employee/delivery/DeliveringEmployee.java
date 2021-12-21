@@ -71,11 +71,15 @@ public final class DeliveringEmployee extends AbstractBehavior<DeliveringEmploye
     }
 
     private void onReviewOpenOrders(ReviewOpenOrders msg) {
-        msg.getOpenOrders().forEach(order -> {
-            store.tell(MarkOrderAsShipped.apply(order.getOrderId(), getContext().messageAdapter(Done.class, done -> MarkOrderShippedConfirmation.apply(msg.getAck()))));
-            log("Delivering order `%s` to `%s`", order.getOrderId(), order.getCustomer().getFirstname());
-            this.awaitShippedConfirmations += 1;
-        });
+        if (msg.getOpenOrders().isEmpty()) {
+            msg.getAck().tell(Done.getInstance());
+        } else {
+            msg.getOpenOrders().forEach(order -> {
+                store.tell(MarkOrderAsShipped.apply(order.getOrderId(), getContext().messageAdapter(Done.class, done -> MarkOrderShippedConfirmation.apply(msg.getAck()))));
+                log("Delivering order `%s` to `%s`", order.getOrderId(), order.getCustomer().getFirstname());
+                this.awaitShippedConfirmations += 1;
+            });
+        }
     }
 
     private void onMarkOrderShippedConfirmation(MarkOrderShippedConfirmation msg) {
