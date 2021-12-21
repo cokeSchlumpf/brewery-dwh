@@ -10,6 +10,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import common.P;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import simulation.clock.Clock;
 import simulation.entities.brewery.Brewery;
 import simulation.entities.brewery.values.HeatingLevel;
@@ -33,6 +35,8 @@ import java.util.List;
 import java.util.Queue;
 
 public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Message> {
+
+    private static Logger LOG = LoggerFactory.getLogger(BrewingEmployee.class);
 
     public interface Message {
     }
@@ -64,7 +68,8 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
         this.currentBrew = null;
     }
 
-    public static Behavior<Message> create(Employee employee, BreweryManagementSystem bms, SalesManagementSystem sms, Brewery brewery) {
+    public static Behavior<Message> create(Employee employee, BreweryManagementSystem bms, SalesManagementSystem sms,
+                                           Brewery brewery) {
         return Behaviors.setup(ctx -> new BrewingEmployee(ctx, employee, bms, sms, brewery));
     }
 
@@ -256,15 +261,16 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
     }
 
     private void log(String message, Object... args) {
-        getContext().getLog()
-            .info(String.format("%s -- %s -- %s", Clock.getInstance()
-                .getNow(), employee.getId(), String.format(message, args)));
+        LOG.info(String.format("%s -- %s -- %s", Clock.getInstance()
+            .getNow(), employee.getId(), String.format(message, args)));
     }
 
     private void scheduleBottling() {
         var timeOfBrewing = Clock.getInstance().getNowAsInstant();
         var bestBeforeDate = timeOfBrewing.plus(Duration.ofDays(7 * 31));
         var volume = 5000d;
+
+        var currentBrew = this.currentBrew;
 
         Clock
             .scheduler(getContext())
@@ -308,7 +314,8 @@ public final class BrewingEmployee extends AbstractBehavior<BrewingEmployee.Mess
                         currentTemperature, instruction.getEndTemperature(), instruction.getDuration());
                     brewery.startMashing();
                     brewery.setHeating(level);
-                    log("Started mashing and set brewery heating level to %s, currentTemperature %.2f °C, target temperature: %.2f °C", level, currentTemperature, instruction.getEndTemperature());
+                    log("Started mashing and set brewery heating level to %s, currentTemperature %.2f °C, target " +
+                        "temperature: %.2f °C", level, currentTemperature, instruction.getEndTemperature());
                 })
                 .waitFor(checkAgainAfter)
                 .ask((now, ack) -> CheckMashTemperature.apply(
