@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS sppl.SALES_BOTTLINGS (
 ---
 
 CREATE TABLE IF NOT EXISTS sppl.SALES_STOCK_PRODUCT (
-    product_id          PRIMARY KEY,
+    product_id          INTEGER PRIMARY KEY,
     bottles             INTEGER NOT NULL,
     reserved            INTEGER NOT NULL,
 
