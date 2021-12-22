@@ -35,7 +35,7 @@ public final class Application {
          */
         var system = ActorSystem.create(World.create(refDataMgmt, bms, brewery, sms), "world");
 
-        Operators.suppressExceptions(() -> Thread.sleep(5000));
+        Operators.suppressExceptions(() -> Thread.sleep(7000));
         var killSwitch = Clock.getInstance().run();
 
         Clock.getInstance().startSingleTimer("kill", Duration.ofDays(365), () -> {

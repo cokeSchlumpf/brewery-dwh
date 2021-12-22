@@ -16,6 +16,13 @@ import simulation.entities.onlinestore.messages.PlaceOrder;
 import systems.sales.SalesManagementSystem;
 import systems.sales.values.Customer;
 
+import systems.sales.values.Order;
+import systems.sales.values.StockProduct;
+import tech.tablesaw.api.*;
+import tech.tablesaw.api.Table;
+import tech.tablesaw.filtering.*;
+
+import java.util.List;
 import java.util.stream.Collectors;
 
 public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
@@ -70,11 +77,25 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
             .filter(p -> p.getAmountAvailable() > 0)
             .collect(Collectors.toList());
 
+        var table = stockProductsToTable(inventory);
+        this.log(table.print());
+
         msg.getResponse().tell(BrowseOffers.BrowseOffersResponse.apply(inventory));
+
+
     }
 
     private void onCheckOpenOrders(CheckOpenOrders msg) {
-        log("Checking Open Orders - View currents stock:\n", stockToString());
+        var orders = this.salesManagementSystem.getOrders().getAllOrders();
+        // optional filter
+        var table = ordersToTable(orders);
+        table = table.where(t -> t.instantColumn("delivery_date").isMissing());
+        if(table.isEmpty()){
+            log("Checking Open Orders - No orders");
+        }
+        else{
+            log("Checking Open Orders - View currents orders: \n %s ", table.print());
+        }
         msg.getOrders()
             .tell(CheckOpenOrders.CheckOrdersResponse.apply(this.salesManagementSystem.getOrders().getAllOrders()));
     }
@@ -143,5 +164,52 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
         }
 
         return result.toString();
+    }
+
+    private Table ordersToTable(List<Order> orders){
+        String result;
+
+        var table = Table
+                                .create()
+                                .addColumns(IntColumn.create("id"))
+                                .addColumns(StringColumn.create("customer"))
+                                .addColumns(InstantColumn.create("order_date"))
+                                .addColumns(InstantColumn.create("delivery_date"))
+                                .addColumns(StringColumn.create("items"));
+
+        orders.forEach(order -> {
+            var row = table.appendRow();
+            row.setInt("id", order.getOrderId());
+            row.setString("customer", order.getCustomer().getEmail());
+            row.setInstant("order_date", order.getOrdered());
+            if(order.getDelivered().isPresent()){
+                row.setInstant("delivery_date", order.getDelivered().get());
+            }
+            var items = order.getItems().stream().map(item -> { return item.getBeer().getProductName() + " " + item.getBottles() + " ";}).collect(Collectors.toList()).toString();
+            row.setString("items", items);
+        });
+        table.sortDescendingOn("order_date");
+        return table;
+    }
+
+    private Table stockProductsToTable(List<StockProduct> stockproducts){
+        String result;
+
+        var table = Table
+                .create()
+                .addColumns(StringColumn.create("product_name"))
+                .addColumns(DoubleColumn.create("price"))
+                .addColumns(IntColumn.create("bottles"))
+                .addColumns(IntColumn.create("reserved"));
+
+        stockproducts.forEach(stockproduct -> {
+            var row = table.appendRow();
+            row.setString("product_name", stockproduct.getProduct().getProductName());
+            row.setDouble("price", stockproduct.getProduct().getPrice());
+            row.setInt("bottles", stockproduct.getAmount());
+            row.setInt("reserved", stockproduct.getReserved());
+        });
+        table.sortDescendingOn("product_name");
+        return table;
     }
 }

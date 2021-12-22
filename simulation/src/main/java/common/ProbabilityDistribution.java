@@ -78,17 +78,30 @@ public class ProbabilityDistribution<T> {
             variants.add(value.replaceFirst("ß", "s"));
         }
 
+        if (value.contains("ä")) {
+            variants.add(value.replaceFirst("ä", "ae"));
+        }
+
+        if (value.contains("ö")) {
+            variants.add(value.replaceFirst("ö", "oe"));
+        }
+
+        if (value.contains("ü")) {
+            variants.add(value.replaceFirst("ü", "ue"));
+        }
+
         if (!value.toLowerCase().equals(value)) {
             variants.add(value.toLowerCase());
         }
 
         if (variants.size() > 0) {
-            var prob = 0.2 / variants.size() - 1;
+            // Warum Formel so? Wird negativ -> werte werden null wenn get value
+            // var prob = 0.2 / variants.size() - 1;
+            var prob = 0.2/variants.size();
             var result = Lists.<Pair<Double, String>>newArrayList();
 
             result.add(Pair.apply(0.8, value));
             variants.forEach(v -> result.add(Pair.apply(prob, v)));
-
             return apply(result);
         } else {
             return singleValue(value);
@@ -111,6 +124,7 @@ public class ProbabilityDistribution<T> {
 
             if (v < sum) {
                 result = variants.get(i).second();
+                break;
             }
 
             i++;

@@ -60,7 +60,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
             var store = ctx.spawn(OnlineStore.create(sms), "store");
 
             ctx.spawn(Employee.create(systems.reference.model.Employee.johnny(), store, bms, sms, brewery), "johnny");
-            ctx.spawn(Customer.create(store, CustomerBehaviors.createSam()), "sam");
+            //ctx.spawn(Customer.create(store, CustomerBehaviors.createSam()), "sam");
             ctx.spawn(Customer.create(store, CustomerBehaviors.createOlga()), "olga");
             return new World(ctx);
         });

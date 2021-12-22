@@ -3,4 +3,4 @@ SELECT
     s.bottles, s.reserved
 FROM sppl.SALES_STOCK_PRODUCT AS s
 JOIN sppl.SALES_PRODUCT AS p ON s.product_id = p.product_id
-WHERE product_id = :product_id;
+WHERE s.product_id = :product_id;

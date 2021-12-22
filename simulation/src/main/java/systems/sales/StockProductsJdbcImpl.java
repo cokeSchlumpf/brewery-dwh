@@ -61,7 +61,7 @@ public class StockProductsJdbcImpl implements StockProducts {
 
     @Override
     public void insertBottling(Bottling bottling) {
-        var productId = getProductByName(bottling.getProduct().getProductName());
+        var productId = getProductId(bottling.getProduct().getProductName());
 
         var query = Templates.renderTemplateFromResources("db/sql/sales/bottlings--insert.sql");
         jdbi.withHandle(handle -> handle

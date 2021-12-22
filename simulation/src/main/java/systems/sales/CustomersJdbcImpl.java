@@ -41,7 +41,7 @@ public class CustomersJdbcImpl implements Customers {
             .bind("name", name)
             .bind("street", address.getStreet())
             .bind("zip_code", address.getZipCode())
-            .bind("city", address.getZipCode())
+            .bind("city", address.getCity())
             .executeAndReturnGeneratedKeys("id", "email", "firstname", "name", "street", "zip_code", "city")
             .map(CustomerMapper.apply())
             .first());

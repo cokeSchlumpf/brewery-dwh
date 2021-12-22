@@ -127,7 +127,14 @@ public class OrdersJdbcImpl implements Orders{
 
         @Override
         public Order map(ResultSet rs, StatementContext ctx) throws SQLException {
-            return Order.apply(rs.getInt("id"), customers.getCustomerById(rs.getInt("customer")), rs.getTimestamp("order_date").toInstant(), rs.getTimestamp("delivery_date").toInstant(), items);
+            var delivery = rs.getTimestamp("delivery_date");
+            if(delivery == null){
+                return Order.apply(rs.getInt("id"), customers.getCustomerById(rs.getInt("customer")), rs.getTimestamp("order_date").toInstant(), null, items);
+            }
+            else{
+                return Order.apply(rs.getInt("id"), customers.getCustomerById(rs.getInt("customer")), rs.getTimestamp("order_date").toInstant(), delivery.toInstant(), items);
+            }
+
         }
 
     }

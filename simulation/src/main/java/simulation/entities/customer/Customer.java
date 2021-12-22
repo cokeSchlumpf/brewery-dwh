@@ -7,12 +7,11 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import simulation.clock.Clock;
 import simulation.entities.customer.behaviors.CustomerBehavior;
-import simulation.entities.customer.messages.Message;
-import simulation.entities.customer.messages.OrderBeerReminder;
-import simulation.entities.customer.messages.ReceiveBeerOrderConfirmation;
-import simulation.entities.customer.messages.SelectBeersToOrder;
+import simulation.entities.customer.messages.*;
 import simulation.entities.onlinestore.OnlineStore;
 import simulation.entities.onlinestore.messages.BrowseOffers;
 import simulation.entities.onlinestore.messages.PlaceOrder;
@@ -20,6 +19,8 @@ import simulation.entities.onlinestore.messages.PlaceOrder;
 import java.time.Duration;
 
 public final class Customer extends AbstractBehavior<Message> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Customer.class);
 
     private final ActorRef<OnlineStore.Message> store;
 
@@ -36,9 +37,11 @@ public final class Customer extends AbstractBehavior<Message> {
         CustomerBehavior behavior) {
 
         return Behaviors.setup(ctx -> {
+            var delay = behavior.getNextOrderDelay();
+            LOG.info("Creating customer with a delay of " + behavior.getCustomer() + " "+ delay.toMinutes());
             Clock
                 .scheduler(ctx)
-                .waitFor(behavior.getNextOrderDelay())
+                .waitFor(Duration.ofDays(4))
                 .ask(OrderBeerReminder::apply)
                 .schedule();
 
@@ -65,6 +68,7 @@ public final class Customer extends AbstractBehavior<Message> {
     }
 
     private void onOrderBeerReminder(OrderBeerReminder msg) {
+        log("Beer order reminder " + behavior.getCustomer());
         var msgAdapter = this
             .getContext()
             .messageAdapter(
@@ -75,11 +79,13 @@ public final class Customer extends AbstractBehavior<Message> {
     }
 
     private void onReceiveBeerOrderConfirmation(ReceiveBeerOrderConfirmation msg) {
+        log("Received beer order confirmation.");
         behavior.setCustomerId(msg.getResponse().getCustomerId());
-
+        // hier taste evaluation?
+        var delay = Duration.ofDays(4);
         Clock
             .scheduler(this.getContext())
-            .waitFor(behavior.getNextOrderDelay())
+            .waitFor(delay)
             .ask(OrderBeerReminder::apply)
             .scheduleAndAcknowledge(msg.getAck());
     }
@@ -89,15 +95,23 @@ public final class Customer extends AbstractBehavior<Message> {
         var customer = behavior.getCustomer();
 
         if (orderItems.size() > 0) {
+            log("Selecting Beers...");
             store.tell(PlaceOrder.apply(customer, orderItems, getContext().messageAdapter(
                 PlaceOrder.PlaceOrderResponse.class, res -> ReceiveBeerOrderConfirmation.apply(res, msg.getAck()))));
         } else {
+            log("No available beers, will check again in 2 days.");
             Clock
                 .scheduler(this.getContext())
                 .waitFor(Duration.ofDays(2))
                 .ask(OrderBeerReminder::apply)
                 .scheduleAndAcknowledge(msg.getAck());
         }
+    }
+
+    private void log(String message, Object... args) {
+        LOG
+            .info(String.format("%s -- %s -- %s", Clock.getInstance()
+            .getNow(), behavior.getCustomer().toString(), String.format(message, args)));
     }
 
 }

@@ -1,1 +1,1 @@
-SELECT FORM sppl.SALES_ORDER_ITEM id, product, quantity WHERE id = :id;
+SELECT id, product, quantity FROM sppl.SALES_ORDER_ITEM WHERE id = :id;

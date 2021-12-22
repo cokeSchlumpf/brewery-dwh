@@ -37,7 +37,7 @@ public class Product {
     public static List<Product> predefined() {
         var result = Lists.<Product>newArrayList();
         result.addAll(predefinedBarBeer());
-        result.addAll(predefinedBarBeer());
+        result.addAll(predefinedFooBeer());
         return result;
     }
 

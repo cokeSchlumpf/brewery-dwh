@@ -3,8 +3,10 @@ package simulation.entities.customer.behaviors;
 import akka.japi.Pair;
 import common.ProbabilityDistribution;
 import systems.brewery.values.Recipe;
+import systems.sales.values.Product;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class CustomerBehaviors {
 
@@ -21,7 +23,7 @@ public final class CustomerBehaviors {
                 ProbabilityDistribution.singleValueWithPotentialTypos("Christmas Street 42"),
                 ProbabilityDistribution.singleValue("12345"),
                 ProbabilityDistribution.singleValueWithPotentialTypos("München")),
-            List.of(Recipe.barBeer().getBeerName()));
+            Product.predefinedFooBeer().stream().map(Product::getProductName).collect(Collectors.toList()));
     }
 
     public static CustomerBehavior createOlga() {

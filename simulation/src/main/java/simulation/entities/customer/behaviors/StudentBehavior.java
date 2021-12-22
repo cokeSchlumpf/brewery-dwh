@@ -1,6 +1,7 @@
 package simulation.entities.customer.behaviors;
 
 import common.P;
+import lombok.Value;
 import systems.sales.values.StockProduct;
 import systems.sales.values.OrderItem;
 
@@ -9,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Value
 public final class StudentBehavior extends CustomerBehavior {
 
     private final List<String> favoriteBeers;

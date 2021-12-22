@@ -1,6 +1,7 @@
 package simulation.entities.customer.behaviors;
 
 import common.P;
+import lombok.Value;
 import simulation.entities.onlinestore.messages.PlaceOrder;
 import systems.sales.values.Address;
 import systems.sales.values.StockProduct;
