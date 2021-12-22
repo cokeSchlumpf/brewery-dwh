@@ -60,19 +60,20 @@ public final class DeliveringEmployee extends AbstractBehavior<DeliveringEmploye
     private void onCheckOrders(CheckOrders cmd) {
         if (checkingOrders) {
             cmd.getAck().tell(Done.getInstance());
+        } else {
+            var adapter = getContext().messageAdapter(
+                CheckOpenOrders.CheckOrdersResponse.class,
+                resp -> ReviewOpenOrders.apply(resp.getOpenOrders(), cmd.getAck()));
+
+            store.tell(CheckOpenOrders.apply(adapter));
+            checkingOrders = true;
         }
-
-        var adapter = getContext().messageAdapter(
-            CheckOpenOrders.CheckOrdersResponse.class,
-            resp -> ReviewOpenOrders.apply(resp.getOpenOrders(), cmd.getAck()));
-
-        store.tell(CheckOpenOrders.apply(adapter));
-        checkingOrders = true;
     }
 
     private void onReviewOpenOrders(ReviewOpenOrders msg) {
         if (msg.getOpenOrders().isEmpty()) {
             msg.getAck().tell(Done.getInstance());
+            checkingOrders = false;
         } else {
             msg.getOpenOrders().forEach(order -> {
                 store.tell(MarkOrderAsShipped.apply(order.getOrderId(), getContext().messageAdapter(Done.class, done -> MarkOrderShippedConfirmation.apply(msg.getAck()))));
