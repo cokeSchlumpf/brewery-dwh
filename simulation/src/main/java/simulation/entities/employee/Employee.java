@@ -36,7 +36,6 @@ public final class Employee extends AbstractBehavior<Employee.Message> {
             var brewing = ctx.spawn(BrewingEmployee.create(employee, bms, sms, brewery), "brewing");
             var delivering = ctx.spawn(DeliveringEmployee.create(employee, store), "delivering");
 
-            /*
             Clock
                 .getInstance()
                 .startPeriodicTimer("brew-a-beer", Duration.ofDays(14), () -> AskPattern.ask(
@@ -44,7 +43,6 @@ public final class Employee extends AbstractBehavior<Employee.Message> {
                     ack -> BrewABeerReminder.apply("foo", ack),
                     Duration.ofMinutes(10),
                     ctx.getSystem().scheduler()));
-             */
 
             Clock
                 .getInstance()
