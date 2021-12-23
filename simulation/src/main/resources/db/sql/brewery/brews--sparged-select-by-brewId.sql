@@ -1,0 +1,1 @@
+SELECT * FROM sppl.PROD_BREWS_SPARGINGS WHERE brew_id=:brew_id;

@@ -22,7 +22,7 @@ public final class BreweryManagementSystem {
         var ingredients = IngredientsJdbcImpl.apply(jdbi);
         var ingredientProducts = IngredientProductsJdbcImpl.apply(jdbi, ingredients);
         var recipes = RecipesJdbcImpl.apply(jdbi, ingredients);
-        var brews = BrewsJdbcImpl.apply(jdbi, ingredientProducts);
+        var brews = BrewsJdbcImpl.apply(jdbi, ingredientProducts, recipes);
 
         return apply(ingredients, ingredientProducts, recipes, brews);
     }

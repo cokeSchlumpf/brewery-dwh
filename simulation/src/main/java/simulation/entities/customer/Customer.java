@@ -15,8 +15,10 @@ import simulation.entities.customer.messages.*;
 import simulation.entities.onlinestore.OnlineStore;
 import simulation.entities.onlinestore.messages.BrowseOffers;
 import simulation.entities.onlinestore.messages.PlaceOrder;
+import systems.sales.values.OrderItem;
 
 import java.time.Duration;
+import java.util.List;
 
 public final class Customer extends AbstractBehavior<Message> {
 
@@ -82,6 +84,10 @@ public final class Customer extends AbstractBehavior<Message> {
         log("Received beer order confirmation.");
         behavior.setCustomerId(msg.getResponse().getCustomerId());
         // hier taste evaluation?
+
+
+
+
         var delay = Duration.ofDays(4);
         Clock
             .scheduler(this.getContext())

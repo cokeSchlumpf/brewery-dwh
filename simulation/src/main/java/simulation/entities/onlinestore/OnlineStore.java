@@ -9,14 +9,17 @@ import akka.actor.typed.javadsl.Receive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simulation.clock.Clock;
+import simulation.entities.brewery.values.TasteProperties;
 import simulation.entities.onlinestore.messages.BrowseOffers;
 import simulation.entities.onlinestore.messages.CheckOpenOrders;
 import simulation.entities.onlinestore.messages.MarkOrderAsShipped;
 import simulation.entities.onlinestore.messages.PlaceOrder;
+import systems.brewery.BreweryManagementSystem;
 import systems.sales.SalesManagementSystem;
 import systems.sales.values.Customer;
 
 import systems.sales.values.Order;
+import systems.sales.values.OrderItem;
 import systems.sales.values.StockProduct;
 import tech.tablesaw.api.*;
 import tech.tablesaw.api.Table;
@@ -34,13 +37,16 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
 
     private final SalesManagementSystem salesManagementSystem;
 
-    public OnlineStore(ActorContext<Message> actor, SalesManagementSystem salesManagementSystem) {
+    private final BreweryManagementSystem breweryManagementSystem;
+
+    public OnlineStore(ActorContext<Message> actor, SalesManagementSystem salesManagementSystem, BreweryManagementSystem bms) {
         super(actor);
         this.salesManagementSystem = salesManagementSystem;
+        this.breweryManagementSystem = bms;
     }
 
-    public static Behavior<Message> create(SalesManagementSystem sms) {
-        return Behaviors.setup(actor -> new OnlineStore(actor, sms));
+    public static Behavior<Message> create(SalesManagementSystem sms, BreweryManagementSystem bms) {
+        return Behaviors.setup(actor -> new OnlineStore(actor, sms, bms));
     }
 
     @Override
@@ -78,7 +84,7 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
             .collect(Collectors.toList());
 
         var table = stockProductsToTable(inventory);
-        this.log(table.print());
+        this.log(" \n" + table.print());
 
         msg.getResponse().tell(BrowseOffers.BrowseOffersResponse.apply(inventory));
 
@@ -144,7 +150,6 @@ public final class OnlineStore extends AbstractBehavior<OnlineStore.Message> {
     public void log(String message, Object... args) {
         LOG.info(String.format("%s -- %s", Clock.getInstance().getNow(), String.format(message, args)));
     }
-
 
     private String stockToString() {
         var available = salesManagementSystem.getProducts().getAllStockProducts();
