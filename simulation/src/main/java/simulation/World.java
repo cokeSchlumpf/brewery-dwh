@@ -57,7 +57,7 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
          *
          */
         return Behaviors.setup(ctx -> {
-            var store = ctx.spawn(OnlineStore.create(sms), "store");
+            var store = ctx.spawn(OnlineStore.create(sms,bms), "store");
 
             ctx.spawn(Employee.create(systems.reference.model.Employee.johnny(), store, bms, sms, brewery), "johnny");
             //ctx.spawn(Customer.create(store, CustomerBehaviors.createSam()), "sam");
