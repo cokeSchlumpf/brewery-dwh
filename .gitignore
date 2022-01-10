@@ -54,6 +54,7 @@ random-generation/database.ini
 .idea
 .ipynb_checkpoints
 random-generation/.ipynb_checkpoints
+*.pyc
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode
 
