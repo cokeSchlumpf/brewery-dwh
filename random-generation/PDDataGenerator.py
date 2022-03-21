@@ -30,7 +30,6 @@ def generate_PD_EXPERIMENTS(count, start_id):
 
     experiments = []
     for i in range(start_id, start_id + count):
-        id = i
         brewer = brewers[random.randint(0, 2)]
 
         exp_start = time_stamp_generator(start, end, "days")
@@ -61,60 +60,70 @@ def generate_PD_EXPERIMENTS(count, start_id):
         final_gravity = random.randint(1, 30)
 
         experiments.append(
-            (id, brewer, description, exp_start, exp_end, mashing_start, mashing_rest_1, mashing_rest_1_duration,
-             mashing_rest_2, mashing_rest_2_duration, mashing_rest_3, mashing_rest_3_duration, mashing_rest_4,
-             mashing_rest_4_duration, mashing_end, sparging_start, sparging_end, boiling_start, hop_1_adding,
-             hop_2_adding,
-             hop_3_adding, boiling_end, yeast_adding, original_gravity, final_gravity))
+             (brewer, description, exp_start, exp_end, mashing_start, mashing_rest_1, mashing_rest_1_duration,
+              mashing_rest_2, mashing_rest_2_duration, mashing_rest_3, mashing_rest_3_duration, mashing_rest_4,
+              mashing_rest_4_duration, mashing_end, sparging_start, sparging_end, boiling_start, hop_1_adding,
+              hop_2_adding,
+              hop_3_adding, boiling_end, yeast_adding, original_gravity, final_gravity))
 
-    return experiments
+    cols = "(brewer, description, exp_start, exp_end, mashing_start, mashing_rest_1, mashing_rest_1_duration, " \
+                 "mashing_rest_2, mashing_rest_2_duration,mashing_rest_3 ,mashing_rest_3_duration," \
+                 "mashing_rest_4, mashing_rest_4_duration, mashing_end ,sparging_start," \
+                 "sparging_end, boiling_start, hop_1_adding, hop_2_adding " \
+                 ",hop_3_adding, boiling_end, yeast_adding, original_gravity " \
+                 ",final_gravity)"
+
+    return experiments, cols
 
 
-def generate_PD_INGREDIENTS(experiments):
+def generate_PD_INGREDIENTS(count, experiments):
     name = ["water", "barely", "wheat", "oats", "rye", "bitterhop", "aromahop", "double target hop",
             "bottom fermented yeast", "top yeast", "coriander seeds", "citrus fruit"]
 
     ingredients = []
-    id = 1
-    for index, row in experiments.iterrows():
-        exp_id = row['id']
+
+    for i in range(count):
+        exp_id = experiments.sample()['id'].values[0]
         number_ingredients = random.randint(1, 5)
-        for i in range(number_ingredients):
+        for j in range(number_ingredients):
             ingredient_name = name[random.randint(0, len(name) - 1)]
             amount = random.randint(1, 100)
-            ingredients.append((id, exp_id, ingredient_name, "Ingredient Description", amount, "gram"))
-            id += 1
+            ingredients.append((str(exp_id), ingredient_name, "Ingredient Description", amount, "gram"))
 
-    return ingredients
+    cols = "(experiment_id, name, description, amount, unit)"
+
+    return ingredients, cols
 
 
-def generate_PD_INTERNAL_RATINGS(experiments):
+def generate_PD_INTERNAL_RATINGS(count, experiments, db):
     brewers = ["Mike", "Eleanor", "Johnny"]
     ratings = []
-    for index, row in experiments.iterrows():
-        exp_id = row['id']
+    exp_ids = []
+    for i in range(count):
+        exp_id = experiments.sample()['id'].values[0]
+        if(exp_id in list(db['experiment_id']) or exp_id in exp_ids):
+            continue
+        exp_ids.append(exp_id)
         for rated_by in brewers:
             rating = random.randint(1, 10)
-            ratings.append((exp_id, rated_by, rating))
+            ratings.append((str(exp_id), rated_by, rating))
 
     return ratings
 
 
-def generate_PD_EXTERNAL_RATING_EVENTS(count,experiments):
+def generate_PD_EXTERNAL_RATING_EVENTS(count,experiments, db):
     external_ratings = []
 
     year_month= []
 
     for i in range(count):
 
-        key_exists = True
-        while key_exists:
-            year = random.randint(1950, 2020)
-            month = random.randint(1, 12)
-            if not((year, month) in year_month):
-                year_month.append((year, month))
-                break
+        year = random.randint(1950, 2020)
+        month = random.randint(1, 12)
+        if (year, month) in year_month or (year, month) in db[['year', 'month']].values:
+            continue
 
+        year_month.append((year, month))
         rating = (int(year), int(month))
         for i in range(4):
             exp = random.randint(0, experiments.shape[0]-1)

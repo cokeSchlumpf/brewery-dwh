@@ -9,6 +9,8 @@ import com.google.common.collect.Lists;
 import common.Operators;
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -23,6 +25,8 @@ import java.util.function.Function;
 
 @AllArgsConstructor(staticName = "apply")
 public final class Scheduler<T> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
 
     private final ActorContext<T> ctx;
 
@@ -59,12 +63,12 @@ public final class Scheduler<T> {
 
     public <R> Scheduler<T> ask(ActorRef<R> recipient, BiFunction<Instant, ActorRef<Done>, R> messageFactory) {
         this.run((now, ack) -> AskPattern
-            .ask(recipient, (ActorRef<Done> ref) -> messageFactory.apply(now, ref), Duration.ofMinutes(1),
-                ctx.getSystem()
-                .scheduler())
-            .thenAccept(done -> {
-                ack.complete(done);
-            }));
+            .ask(
+                recipient,
+                (ActorRef<Done> ref) -> messageFactory.apply(now, ref),
+                Duration.ofMinutes(1),
+                ctx.getSystem().scheduler())
+            .thenAccept(ack::complete));
 
         return this;
     }
@@ -123,20 +127,28 @@ public final class Scheduler<T> {
         @Override
         public CompletionStage<Done> run(Instant time) {
             var result = Operators.allOf(actions
-                .stream()
-                .map(action -> {
-                    var ack = new CompletableFuture<Done>();
-                    action.accept(ClockMoment.apply(time, ack));
-                    return ack;
-                }));
+                    .stream()
+                    .map(action -> {
+                        try {
+                            var ack = new CompletableFuture<Done>();
+                            action.accept(ClockMoment.apply(time, ack));
+                            return ack;
+                        } catch (Exception e) {
+                            LOG.error("An exception occurred while running action.", e);
+                            throw e;
+                        }
+                    }))
+                .thenApply(list -> Done.getInstance());
 
-            result.thenRun(() -> {
+            result = result.thenCompose(done -> {
                 if (next != null) {
-                    next.run(time);
-                };
+                    return next.run(time);
+                } else {
+                    return CompletableFuture.completedFuture(done);
+                }
             });
 
-            return result.thenApply(ignore -> Done.getInstance());
+            return result;
         }
 
         @Override
@@ -178,13 +190,18 @@ public final class Scheduler<T> {
                     var now = Clock.getInstance().getNowAsInstant();
 
                     return Operators
-                        .allOf(actions
+                        .<Done>allOfSequential(actions
                             .stream()
-                            .map(action -> {
-                                var ack = new CompletableFuture<Done>();
-                                var moment = ClockMoment.apply(now, ack);
-                                action.accept(moment);
-                                return ack;
+                            .map(action -> () -> {
+                                try {
+                                    var ack = new CompletableFuture<Done>();
+                                    var moment = ClockMoment.apply(now, ack);
+                                    action.accept(moment);
+                                    return ack;
+                                } catch (Exception e) {
+                                    LOG.error("An exception occurred while running action.", e);
+                                    throw e;
+                                }
                             }))
                         .thenApply(ignore -> {
                             if (next != null) {
@@ -195,7 +212,18 @@ public final class Scheduler<T> {
                         });
                 });
 
-            return CompletableFuture.completedFuture(Done.getInstance());
+
+            var result = CompletableFuture.completedFuture(Done.getInstance());
+
+            result = result.thenCompose(done -> {
+                if (next != null) {
+                    return next.run(time);
+                } else {
+                    return CompletableFuture.completedFuture(done);
+                }
+            });
+
+            return result;
         }
 
         @Override

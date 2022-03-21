@@ -1,0 +1,1 @@
+SELECT * FROM sppl.SALES_BOTTLINGS WHERE id = :id;

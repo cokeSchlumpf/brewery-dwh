@@ -1,15 +1,14 @@
-package simulation.entities.employee.messages;
+package simulation.entities.employee.delivery.messages;
 
 import akka.Done;
 import akka.actor.typed.ActorRef;
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import simulation.entities.employee.delivery.DeliveringEmployee;
 
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class BrewABeerCommand implements EmployeeMessage {
-
-    String name;
+public class CheckOrders implements DeliveringEmployee.Message {
 
     ActorRef<Done> ack;
 

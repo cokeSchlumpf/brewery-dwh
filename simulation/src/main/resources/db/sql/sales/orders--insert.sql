@@ -1,0 +1,1 @@
+INSERT INTO sppl.SALES_ORDER (customer, order_date) VALUES (:customer, :order_date);

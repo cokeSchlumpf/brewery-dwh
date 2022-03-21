@@ -1,11 +1,11 @@
-package simulation.entities.employee.messages;
+package simulation.entities.employee.brewing.messages;
 
 import akka.Done;
 import akka.actor.typed.ActorRef;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.With;
-import simulation.entities.brewery.values.HeatingLevel;
+import simulation.entities.employee.brewing.BrewingEmployee;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,7 +13,7 @@ import java.time.Instant;
 @With
 @Value
 @AllArgsConstructor(staticName = "apply")
-public class CheckMashTemperatureCommand implements EmployeeMessage{
+public class CheckMashTemperature implements BrewingEmployee.Message {
 
     Instant started;
 

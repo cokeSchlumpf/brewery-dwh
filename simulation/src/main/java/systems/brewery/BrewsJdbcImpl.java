@@ -3,10 +3,13 @@ package systems.brewery;
 import common.Templates;
 import lombok.AllArgsConstructor;
 import org.jdbi.v3.core.Jdbi;
+import systems.reference.model.Employee;
+import systems.sales.values.Bottling;
 import systems.brewery.values.Brew;
 import systems.brewery.values.event.*;
 
 import java.time.Instant;
+import java.util.List;
 
 @AllArgsConstructor(staticName = "apply")
 public final class BrewsJdbcImpl implements Brews {
@@ -14,6 +17,8 @@ public final class BrewsJdbcImpl implements Brews {
     private final Jdbi jdbi;
 
     private final IngredientProducts ingredientProducts;
+
+    private final Recipes recipes;
 
     @Override
     public void insertBrew(Brew brew) {
@@ -58,6 +63,34 @@ public final class BrewsJdbcImpl implements Brews {
         } else {
             throw new RuntimeException(String.format("Unknown brew event `%s`", event.getClass()));
         }
+    }
+
+    public List<Brew> getBrewsByBeerId(String beer_id){
+
+        //ToDo: List of Brew events implementieren
+
+        // Recipe
+        var recipe = recipes.findRecipeByName(beer_id);
+
+        // get all Brews
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--brew-select-by-beerID.sql");
+
+        var brews = jdbi.withHandle(handle -> handle
+                                                        .createQuery(query)
+                                                        .bind("beer", beer_id)
+                                                        .map((rs,ctx) -> {
+                                                            var employee = Employee.apply(
+                                                                    rs.getString("e_id"), rs.getString("e_firstname"), rs.getString("e_name"),
+                                                                    rs.getTimestamp("e_date_of_birth").toInstant(), rs.getString("e_position"));
+                                                            var start = rs.getTimestamp("brew_start").toInstant();
+                                                            var end = rs.getTimestamp("brew_start").toInstant();
+                                                            var brew = Brew.apply(recipe.get(), employee,start,end, rs.getDouble("original_gravity"),rs.getDouble("final_gravity"), List.of());
+                                                            return brew;
+                                                        })
+                                                        .list());
+
+
+        return brews;
     }
 
     @Override
@@ -115,6 +148,41 @@ public final class BrewsJdbcImpl implements Brews {
             .execute());
     }
 
+    private List<Sparged> findSparged(int brewId){
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--sparged-select-by-brewId.sql");
+        var spargings = jdbi.withHandle(handle -> handle
+                .createQuery(query)
+                .bind("brew_id", brewId)
+                .map((rs,ctx) -> {
+                    return Sparged.apply(rs.getTimestamp("start_time").toInstant(), rs.getTimestamp("end_time").toInstant());
+                })
+                .list());
+        return spargings;
+    }
+
+    private List<Boiled> findBoiled(int brewId){
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--boilings-select-by-brewId.sql");
+        var boilings = jdbi.withHandle(handle -> handle
+                .createQuery(query)
+                .bind("brew_id", brewId)
+                .map((rs,ctx) -> {
+                    return Boiled.apply(rs.getTimestamp("start_time").toInstant(), rs.getTimestamp("end_time").toInstant());
+                })
+                .list());
+        return boilings;
+    }
+
+    private void logSparged(int brewId, Sparged sparged) {
+        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--sparged--insert.sql");
+
+        jdbi.withHandle(handle -> handle
+                .createUpdate(query)
+                .bind("brew_id", brewId)
+                .bind("start_time", sparged.getStart())
+                .bind("end_time", sparged.getEnd())
+                .execute());
+    }
+
     private void logBoiled(int brewId, Boiled boiled) {
         var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--boilings--insert.sql");
 
@@ -166,17 +234,6 @@ public final class BrewsJdbcImpl implements Brews {
             .execute());
     }
 
-    private void logSparged(int brewId, Sparged sparged) {
-        var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--sparged--insert.sql");
-
-        jdbi.withHandle(handle -> handle
-            .createUpdate(query)
-            .bind("brew_id", brewId)
-            .bind("start_time", sparged.getStart())
-            .bind("end_time", sparged.getEnd())
-            .execute());
-    }
-
     private Integer getLatestBrewId() {
         var query = Templates.renderTemplateFromResources("db/sql/brewery/brews--select-by-start.sql");
 
@@ -185,4 +242,5 @@ public final class BrewsJdbcImpl implements Brews {
             .map((rs, ctx) -> rs.getInt("id"))
             .first());
     }
+
 }

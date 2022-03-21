@@ -1,25 +1,21 @@
 package simulation;
 
-import akka.Done;
-import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
-import akka.pattern.StatusReply;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import simulation.clock.Clock;
 import simulation.entities.brewery.Brewery;
+import simulation.entities.customer.Customer;
+import simulation.entities.customer.behaviors.CustomerBehaviors;
 import simulation.entities.employee.Employee;
-import simulation.entities.employee.messages.BrewABeerCommand;
-import simulation.entities.employee.messages.EmployeeMessage;
+import simulation.entities.onlinestore.OnlineStore;
 import systems.brewery.BreweryManagementSystem;
 import systems.brewery.values.Ingredient;
 import systems.brewery.values.IngredientProduct;
 import systems.brewery.values.Recipe;
 import systems.reference.ReferenceDataManagement;
-
-import java.time.Duration;
+import systems.sales.SalesManagementSystem;
+import systems.sales.values.Product;
 
 public final class World extends AbstractBehavior<World.WorldMessage> {
 
@@ -28,24 +24,13 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
     interface WorldMessage {
     }
 
-    @AllArgsConstructor(staticName = "apply")
-    public static class HelloWorld implements WorldMessage {
-
-        ActorRef<StatusReply<Done>> done;
-
-    }
-
-    private final ActorContext<WorldMessage> ctx;
-
-    private final ActorRef<EmployeeMessage> johnny;
-
-    private World(ActorContext<WorldMessage> context, ActorRef<EmployeeMessage> johnny) {
+    private World(ActorContext<WorldMessage> context) {
         super(context);
-        this.ctx = context;
-        this.johnny = johnny;
     }
 
-    public static Behavior<WorldMessage> create(ReferenceDataManagement refDataManagement, BreweryManagementSystem bms, Brewery brewery) {
+    public static Behavior<WorldMessage> create(ReferenceDataManagement refDataManagement,
+                                                BreweryManagementSystem bms, Brewery brewery,
+                                                SalesManagementSystem sms) {
         /*
          * Clear database.
          */
@@ -53,6 +38,9 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
         bms.getRecipes().clear();
         bms.getIngredientProducts().clear();
         bms.getIngredients().clear();
+        sms.getOrders().clear();
+        sms.getProducts().clear();
+        sms.getCustomers().clear();
         LOG.info("Cleaned database.");
 
         /*
@@ -62,37 +50,25 @@ public final class World extends AbstractBehavior<World.WorldMessage> {
         Ingredient.predefined().forEach(ingredient -> bms.getIngredients().insertIngredient(ingredient));
         IngredientProduct.predefined().forEach(product -> bms.getIngredientProducts().insertIngredientProduct(product));
         Recipe.predefined().forEach(recipe -> bms.getRecipes().insertRecipe(recipe));
+        Product.predefined().forEach(product -> sms.getProducts().insertProduct(product));
         LOG.info("Initial data inserted.");
 
         /*
          *
          */
         return Behaviors.setup(ctx -> {
-            Clock
-                .getInstance()
-                .startSingleTimer("brew a beer", Duration.ofDays(1), done -> AskPattern
-                    .ask(ctx.getSelf(), HelloWorld::apply, Duration.ofSeconds(10), ctx.getSystem().scheduler())
-                    .thenApply(reply -> done.complete(reply.getValue())));
+            var store = ctx.spawn(OnlineStore.create(sms,bms), "store");
 
-            var johnny = ctx.spawn(Employee.create(bms, systems.reference.model.Employee.johnny(), brewery), "johnny");
-            return new World(ctx, johnny);
+            ctx.spawn(Employee.create(systems.reference.model.Employee.johnny(), store, bms, sms, brewery), "johnny");
+            //ctx.spawn(Customer.create(store, CustomerBehaviors.createSam()), "sam");
+            ctx.spawn(Customer.create(store, CustomerBehaviors.createOlga()), "olga");
+            return new World(ctx);
         });
     }
 
     @Override
     public Receive<WorldMessage> createReceive() {
         return newReceiveBuilder()
-            .onMessage(HelloWorld.class, msg -> {
-                AskPattern
-                    .ask(
-                        johnny,
-                        (ActorRef<Done> ref) -> BrewABeerCommand.apply("foo", ref),
-                        Duration.ofSeconds(10),
-                        ctx.getSystem().scheduler())
-                    .thenAccept(done -> msg.done.tell(StatusReply.success(done)));
-
-                return Behaviors.same();
-            })
             .build();
     }
 

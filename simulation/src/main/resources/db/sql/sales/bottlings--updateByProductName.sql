@@ -1,0 +1,1 @@
+UPDATE sppl.SALES_BOTTLINGS SET bottles = :bottles WHERE id = :id;

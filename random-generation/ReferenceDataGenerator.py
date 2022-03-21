@@ -1,7 +1,7 @@
 import names
 import random
 import datetime
-
+import string
 
 def generate_MA_EMPLOYEES(count, start_id):
     employee_list = ["Manager", "Assistant", "Logistic Engineer", "Sales Representative", "Brewer"]
@@ -10,7 +10,7 @@ def generate_MA_EMPLOYEES(count, start_id):
 
     employees = []
     for i in range(start_id, start_id + count):
-        id = i
+        id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
         first_name = names.get_first_name()
         last_name = names.get_last_name()
 

@@ -1,0 +1,1 @@
+SELECT * FROM sppl.SALES_PRODUCT as p WHERE beer_id = :beer_id;

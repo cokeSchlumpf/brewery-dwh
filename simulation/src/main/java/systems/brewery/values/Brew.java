@@ -5,6 +5,7 @@ import lombok.Value;
 import lombok.With;
 import systems.brewery.values.event.BrewEvent;
 import systems.reference.model.Employee;
+import systems.sales.values.Bottling;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -51,13 +52,8 @@ public class Brew {
      */
     List<BrewEvent> events;
 
-    /**
-     * Bottling of create beer.
-     */
-    List<Bottling> bottlings;
-
     public static Brew apply(Recipe beer, Employee brewer, Instant start, double originalGravity) {
-        return apply(beer, brewer, start, null, originalGravity, null, List.of(), List.of());
+        return apply(beer, brewer, start, null, originalGravity, null, List.of());
     }
 
     public Optional<Instant> getEnd() {
@@ -66,13 +62,6 @@ public class Brew {
 
     public Optional<Double> getFinalGravity() {
         return Optional.ofNullable(finalGravity);
-    }
-
-    public Brew withBottling(Bottling bottling) {
-        var bottlings = new ArrayList<>(this.bottlings);
-        bottlings.add(bottling);
-
-        return withBottlings(bottlings);
     }
 
     public Brew withEvent(BrewEvent event) {

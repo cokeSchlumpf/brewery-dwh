@@ -66,11 +66,17 @@ public final class Clock {
         return now.toInstant(ZoneOffset.UTC);
     }
 
-    public KillSwitch run() {
+    public KillSwitch run(boolean earlyStopping) {
         var kill = KillSwitch.apply();
+        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         CompletableFuture.runAsync(() -> {
-            while (!kill.isKilled() && !scheduledEvents.get().isEmpty()) {
+            LOG.info("Starting Clock ...");
+            while (!kill.isKilled() && (!scheduledEvents.get().isEmpty() || !earlyStopping)) {
+                if (now.getHour() == 0 && now.getMinute() == 0) {
+                    LOG.info(formatter.format(now));
+                }
+
                 var runEvents = scheduledEvents
                     .get()
                     .stream()
@@ -108,10 +114,14 @@ public final class Clock {
                 now = now.plus(Duration.ofMinutes(1));
             }
 
-            LOG.info("Clock stopped running (switch: {}, events: {})", kill.isKilled(), scheduledEvents.get().size());
+            LOG.info("Clock stopped running (switch: {}, events: {}), eralyStopping: {})", kill.isKilled(), scheduledEvents.get().size(), earlyStopping);
         });
 
         return kill;
+    }
+
+    public KillSwitch run() {
+        return run(false);
     }
 
     public void startSingleTimer(String key, Duration delay, Creator<CompletionStage<Done>> operation) {

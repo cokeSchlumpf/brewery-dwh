@@ -167,20 +167,3 @@ CREATE TABLE IF NOT EXISTS sppl.PROD_BREWS_BOILINGS (
     FOREIGN KEY (brew_id) REFERENCES sppl.PROD_BREWS (id),
     PRIMARY KEY (brew_id, start_time)
 );
-
---
--- Bottlings
---
-
-CREATE SEQUENCE IF NOT EXISTS sppl.PROD_BOTTLINGS_ID_SEQ;
-
-CREATE TABLE IF NOT EXISTS sppl.PROD_BOTTLINGS (
-    id                  INTEGER PRIMARY KEY DEFAULT nextval('sppl.PROD_BOTTLINGS_ID_SEQ'),
-    brew                INTEGER NOT NULL,
-    bottled             TIMESTAMP NOT NULL,
-    best_before_date    TIMESTAMP NOT NULL,
-    quantity            INTEGER NOT NULL,
-    bottles             INTEGER NOT NULL,
-
-    FOREIGN KEY (brew) REFERENCES sppl.PROD_BREWS
-);
